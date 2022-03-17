@@ -2,107 +2,29 @@ package com.example.elder
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.elder.ui.data.Repository
 import com.example.elder.ui.model.GroupReport
 import com.example.elder.ui.model.Lesson
-import com.example.elder.ui.model.Student
+import com.example.elder.ui.model.StudentUiState
+import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.*
 
 class StudentsViewModel : ViewModel() {
 
-    private val group03 = listOf(
-        "Ахмед-Оглы",
-        "Букач",
-        "Буренко",
-        "Гертер",
-        "Гусарь",
-        "Давоян",
-        "Евсиков",
-        "Каунов",
-        "Коротаева",
-        "Кравченко",
-        "Куприянов",
-        "Куприянова",
-        "Мирошников",
-        "Низами",
-        "Ольховский",
-        "Переверзев",
-        "Пивнев",
-        "Полутина",
-        "Розентул",
-        "Сапрыкина",
-        "Ханцев",
-        "Шелехов",
-        "Шепилов"
-    )
-
-    private val group01 = listOf(
-        "Васильев",
-        "Гайфуллин",
-        "Галась",
-        "Глушаков",
-        "Дерябкина",
-        "Долотов",
-        "Егоров",
-        "Ивлев",
-        "Кириллов",
-        "Клеменко",
-        "Корепанов",
-        "Косников",
-        "Котов",
-        "Муравьев",
-        "Ней",
-        "Пруцаков",
-        "Стасенко",
-        "Степанов",
-        "Факхур",
-        "Федоренко",
-        "Фоменко",
-        "Химичева",
-        "Чайников",
-        "Чернобровкина",
-        "Шипулин",
-        "Щербина",
-        "Яворская"
-    )
-
-    private val group02 = listOf(
-        "Болотов",
-        "Винниченко",
-        "Волков",
-        "Газизов",
-        "Глушков",
-        "Григорьев",
-        "Гусейнов",
-        "Данилов",
-        "Денисов",
-        "Довгаль",
-        "Зароченцев",
-        "Жадан",
-        "Карими",
-        "Криворучко",
-        "Кост",
-        "Лысенко",
-        "Медведев",
-        "Панина",
-        "Попов",
-        "Петрина",
-        "Овсепьян",
-        "Самойлик",
-        "Тищенко",
-        "Ткаченко",
-        "Харитонов",
-        "Черногаев"
-    )
-
-    val group = group02.map { Student(it) }.toMutableStateList()
+    var group = Repository.getGroup("GROUP2").toMutableStateList()
+        private set
 
     var date: Calendar by mutableStateOf(Calendar.getInstance())
+        private set
 
     var lesson by mutableStateOf(Lesson.FIRST)
+        private set
 
-    fun onStudentChecked(student: Student) {
-        student.checked.value = !student.checked.value
+    fun onStudentChecked(studentUiState: StudentUiState) {
+        val index = group.indexOf(studentUiState)
+        group[index] = group[index].copy(checked = !studentUiState.checked)
     }
 
     fun onDateChanged(newDate: Calendar) {
@@ -114,20 +36,24 @@ class StudentsViewModel : ViewModel() {
     }
 
     fun onAttendingStudentsRequest(): GroupReport {
-        val attendingStudents = group.filter { student -> student.checked.value }
+        val attendingStudents = group.filter { student -> student.checked }
         return createReport(attendingStudents, "Присутствующие:")
     }
 
     fun onMissingStudentsRequest(): GroupReport {
-        val missingStudents = group.filter { student -> !student.checked.value }
+        val missingStudents = group.filter { student -> !student.checked }
         return createReport(missingStudents, "Отсутствующие:")
     }
 
-    fun checkAllStudents() {
-        group.forEach { student -> student.checked.value = !student.checked.value}
+    fun checkAllStudents(checked: Boolean) {
+        viewModelScope.launch {
+            for (i in 0..group.size - 1) {
+                group[i] = group[i].copy(checked = checked)
+            }
+        }
     }
 
-    private fun createReport(group: List<Student>, prefix: String): GroupReport {
+    private fun createReport(group: List<StudentUiState>, prefix: String): GroupReport {
         val groupReport = GroupReport(
             subject = "ПИ2002, ${DateFormat.getDateInstance().format(date.time)}, ${lesson.value}",
             content = group.joinToString(

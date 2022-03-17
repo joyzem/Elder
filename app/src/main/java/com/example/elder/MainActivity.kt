@@ -23,21 +23,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     StudentsScreen(
-                        students = studentsViewModel.group,
-                        onStudentChecked = studentsViewModel::onStudentChecked,
-                        date = studentsViewModel.date,
-                        onDateChange = studentsViewModel::onDateChanged,
-                        lesson = studentsViewModel.lesson,
-                        onLessonChange = studentsViewModel::onLessonChanged,
-                        onAttendingStudentsClicked = {
-                            val report = studentsViewModel.onAttendingStudentsRequest()
-                            sendReport(report)
-                        },
-                        onMissingStudentsClicked = {
-                            val report = studentsViewModel.onMissingStudentsRequest()
-                            sendReport(report)
-                        },
-                        onSelectAllCLick = studentsViewModel::checkAllStudents
+                        studentsViewModel = studentsViewModel
                     )
                 }
             }

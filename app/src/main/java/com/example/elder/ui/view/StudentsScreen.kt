@@ -1,12 +1,11 @@
 package com.example.elder
 
 import android.app.DatePickerDialog
-import android.content.Context
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -14,47 +13,47 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Dialog
 import com.example.elder.ui.model.Lesson
-import com.example.elder.ui.model.Student
+import com.example.elder.ui.model.StudentUiState
 import com.example.elder.ui.theme.ElderTheme
 import java.text.DateFormat
 import java.util.*
 
 @Composable
 fun StudentsScreen(
-    students: List<Student>,
-    onStudentChecked: (Student) -> Unit,
-    date: Calendar,
-    onDateChange: (Calendar) -> Unit,
-    lesson: Lesson,
-    onLessonChange: (Lesson) -> Unit,
-    onAttendingStudentsClicked: () -> Unit,
-    onMissingStudentsClicked: () -> Unit,
-    onSelectAllCLick: () -> Unit
+    studentsViewModel: StudentsViewModel
 ) {
-    val context = LocalContext.current
-
+    val students by remember {
+        mutableStateOf(studentsViewModel.group)
+    }
     Scaffold(
         topBar = {
             StudentsAppBar(
-                date = date,
-                context = context,
-                lesson = lesson,
-                onDateChange = onDateChange,
-                onLessonChange = onLessonChange,
-                onSelectAllCLick = onSelectAllCLick
-            )
+                date = studentsViewModel.date,
+                lesson = studentsViewModel.lesson,
+                onDateChange = studentsViewModel::onDateChanged,
+                onLessonChange = studentsViewModel::onLessonChanged
+            ) {
+                studentsViewModel.checkAllStudents(checked = true)
+            }
         }
     ) {
         Column {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(items = students) { student ->
-                    StudentRow(student = student, onStudentChecked = { onStudentChecked(student) })
+                    StudentRow(
+                        onStudentChecked = {
+                            studentsViewModel.onStudentChecked(student)
+                        },
+                        studentUiState = student
+                    )
                 }
             }
             Divider(
@@ -64,13 +63,12 @@ fun StudentsScreen(
                 color = Color.DarkGray
             )
             Footer(
-                onAttendingStudentsClicked = onAttendingStudentsClicked,
-                onMissingStudentsClicked = onMissingStudentsClicked,
+                onAttendingStudentsClicked = studentsViewModel::onAttendingStudentsRequest,
+                onMissingStudentsClicked = studentsViewModel::onMissingStudentsRequest,
                 modifier = Modifier.padding(16.dp)
             )
         }
     }
-
 }
 
 @Composable
@@ -113,29 +111,29 @@ fun Footer(
 }
 
 @Composable
-fun StudentRow(student: Student, onStudentChecked: (Student) -> Unit) {
+fun StudentRow(onStudentChecked: () -> Unit, studentUiState: StudentUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                onStudentChecked(student)
-            }
+            .toggleable(
+                studentUiState.checked, onValueChange = {
+                    onStudentChecked()
+                },
+                role = Role.Checkbox
+            )
             .padding(16.dp)
     ) {
         Checkbox(
-            checked = student.checked.value, onCheckedChange = {
-                onStudentChecked(student)
-            }
+            checked = studentUiState.checked, onCheckedChange = null
         )
         Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-        Text(student.name)
+        Text(studentUiState.name)
     }
 }
 
 @Composable
 fun StudentsAppBar(
     modifier: Modifier = Modifier,
-    context: Context,
     date: Calendar,
     lesson: Lesson,
     onDateChange: (Calendar) -> Unit,
@@ -145,7 +143,7 @@ fun StudentsAppBar(
     val dateFormat: DateFormat = DateFormat.getDateInstance()
     var ifShowDialog by remember { mutableStateOf(false) }
     TopAppBar() {
-        PickDateLabel(modifier, context, onDateChange, date, dateFormat)
+        PickDateLabel(modifier, onDateChange, date, dateFormat)
         PickLessonLabel(
             showDialog = ifShowDialog,
             lesson = lesson,
@@ -167,11 +165,11 @@ fun StudentsAppBar(
 @Composable
 private fun PickDateLabel(
     modifier: Modifier = Modifier,
-    context: Context,
     onDateChange: (Calendar) -> Unit,
     date: Calendar,
     dateFormat: DateFormat
 ) {
+    val context = LocalContext.current
     Card(
         elevation = 0.dp,
         modifier = modifier
@@ -219,8 +217,13 @@ private fun PickLessonLabel(
             onLessonClicked = onLessonChange
         )
     }
-    IconButton(
-        onClick = onShowDialogButton,
+    Card(
+        elevation = 0.dp,
+        modifier = Modifier
+            .fillMaxHeight()
+            .clickable {
+                onShowDialogButton()
+            }
     ) {
         Row(modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 16.dp, end = 16.dp)) {
             Icon(
@@ -271,30 +274,22 @@ fun LessonDialog(
 @Preview
 @Composable
 fun StudentsAppBarPreview() {
-    StudentsAppBar(
-        date = Calendar.getInstance(),
-        lesson = Lesson.FIRST,
-        onDateChange = {},
-        onLessonChange = {},
-        context = LocalContext.current,
-        onSelectAllCLick = {}
-    )
+    ElderTheme {
+        StudentsAppBar(
+            date = Calendar.getInstance(),
+            lesson = Lesson.FIRST,
+            onDateChange = {},
+            onLessonChange = {}
+        ) {}
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
-    ElderTheme() {
+    ElderTheme {
         StudentsScreen(
-            listOf(Student("Болотов")),
-            {},
-            Calendar.getInstance(),
-            {},
-            Lesson.FIRST,
-            {},
-            {},
-            {},
-            {}
+            studentsViewModel = StudentsViewModel()
         )
     }
 
