@@ -2,11 +2,11 @@
 <resources>
 
     <style name="Theme.Elder" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="android:statusBarColor">?attr/colorOnSurface</item>
-        <item name="colorPrimary">#212121</item>
-        <item name="colorPrimaryVariant">#000000</item>
+        <item name="android:statusBarColor">#fdfbff</item>
+        <item name="colorPrimary">#FF1b6c30</item>
+        <item name="colorPrimaryVariant">#FF516350</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#212121</item>
+        <item name="colorSecondary">#FF698168</item>
         <item name="colorOnSecondary">#FFFFFF</item>
         <item name="colorSurface">#FFFFFF</item>
         <item name="colorOnSurface">#212121</item>
