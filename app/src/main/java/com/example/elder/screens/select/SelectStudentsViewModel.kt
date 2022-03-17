@@ -1,25 +1,35 @@
-package com.example.elder
+package com.example.elder.screens.select
 
+import android.util.Log
 import androidx.compose.runtime.*
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.elder.ui.data.Repository
-import com.example.elder.ui.model.GroupReport
-import com.example.elder.ui.model.Lesson
-import com.example.elder.ui.model.StudentUiState
+import androidx.lifecycle.*
+import com.example.elder.data.students.StudentRepository
+import com.example.elder.domain.GroupReport
+import com.example.elder.domain.Lesson
+import com.example.elder.domain.getCurrentLesson
 import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.util.*
 
-class StudentsViewModel : ViewModel() {
+class SelectStudentsViewModel(private val repository: StudentRepository) : ViewModel() {
 
-    var group = Repository.getGroup("GROUP2").toMutableStateList()
+    var group: MutableList<StudentUiState> by mutableStateOf(
+        mutableStateListOf()
+    )
         private set
+
+    init {
+        viewModelScope.launch {
+            repository.fetchAllStudents().collect {
+                group = it.map { StudentUiState(it.surname) }.toMutableStateList()
+            }
+        }
+    }
 
     var date: Calendar by mutableStateOf(Calendar.getInstance())
         private set
-
-    var lesson by mutableStateOf(Lesson.FIRST)
+    var lesson by mutableStateOf(getCurrentLesson())
         private set
 
     fun onStudentChecked(studentUiState: StudentUiState) {
@@ -65,4 +75,16 @@ class StudentsViewModel : ViewModel() {
         )
         return groupReport
     }
+}
+
+class StudentViewModelFactory(private val repository: StudentRepository) :
+    ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SelectStudentsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SelectStudentsViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+
 }

@@ -8,12 +8,17 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.ui.Modifier
-import com.example.elder.ui.model.GroupReport
+import com.example.elder.domain.GroupReport
+import com.example.elder.screens.select.StudentViewModelFactory
+import com.example.elder.screens.select.SelectStudentsViewModel
 import com.example.elder.ui.theme.ElderTheme
 
 class MainActivity : ComponentActivity() {
 
-    val studentsViewModel by viewModels<StudentsViewModel>()
+    val studentsViewModel by viewModels<SelectStudentsViewModel> {
+        StudentViewModelFactory((application as ElderApplication).repository)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +28,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     StudentsScreen(
-                        studentsViewModel = studentsViewModel
+                        studentsViewModel = studentsViewModel,
+                        onAttendingStudentsClicked = {
+                            sendReport(studentsViewModel.onAttendingStudentsRequest())
+                        },
+                        onMissingStudentsClicked = {
+                            sendReport(studentsViewModel.onMissingStudentsRequest())
+                        }
                     )
                 }
             }

@@ -1,14 +1,14 @@
-package com.example.elder.ui.data
+package com.example.elder.data
 
-import com.example.elder.ui.model.StudentUiState
+import com.example.elder.data.students.StudentEntity
 
 class Repository {
     companion object {
-        fun getGroup(key: String): List<StudentUiState> {
-            when (key) {
-                "GROUP1" -> return group01.map { StudentUiState(it) }
-                "GROUP2" -> return group02.map { StudentUiState(it) }
-                else -> return group03.map { StudentUiState(it) }
+        fun getGroup(groupKey: GROUP_KEYS): List<StudentEntity> {
+            when (groupKey) {
+                GROUP_KEYS.GROUP01 -> return group01.map { StudentEntity(surname = it) }
+                GROUP_KEYS.GROUP02 -> return group02.map { StudentEntity(surname = it) }
+                GROUP_KEYS.GROUP03 -> return group03.map { StudentEntity(surname = it) }
             }
         }
 
@@ -99,10 +99,8 @@ class Repository {
     }
 }
 
-enum class GROUP_KEYS(
-    val key: String
-) {
-    GROUP01("GROUP1"),
-    GROUP02("GROUP2"),
-    GROUP03("GROUP3")
+enum class GROUP_KEYS{
+    GROUP01,
+    GROUP02,
+    GROUP03
 }

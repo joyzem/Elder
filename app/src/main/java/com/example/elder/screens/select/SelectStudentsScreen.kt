@@ -20,19 +20,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Dialog
-import com.example.elder.ui.model.Lesson
-import com.example.elder.ui.model.StudentUiState
+import com.example.elder.domain.Lesson
+import com.example.elder.screens.select.StudentUiState
+import com.example.elder.screens.select.SelectStudentsViewModel
 import com.example.elder.ui.theme.ElderTheme
 import java.text.DateFormat
 import java.util.*
 
 @Composable
 fun StudentsScreen(
-    studentsViewModel: StudentsViewModel
+    studentsViewModel: SelectStudentsViewModel,
+    onAttendingStudentsClicked: () -> Unit,
+    onMissingStudentsClicked: () -> Unit
 ) {
-    val students by remember {
-        mutableStateOf(studentsViewModel.group)
-    }
+    val students = studentsViewModel.group
     Scaffold(
         topBar = {
             StudentsAppBar(
@@ -63,8 +64,8 @@ fun StudentsScreen(
                 color = Color.DarkGray
             )
             Footer(
-                onAttendingStudentsClicked = studentsViewModel::onAttendingStudentsRequest,
-                onMissingStudentsClicked = studentsViewModel::onMissingStudentsRequest,
+                onAttendingStudentsClicked = onAttendingStudentsClicked,
+                onMissingStudentsClicked = onMissingStudentsClicked,
                 modifier = Modifier.padding(16.dp)
             )
         }
@@ -142,7 +143,7 @@ fun StudentsAppBar(
 ) {
     val dateFormat: DateFormat = DateFormat.getDateInstance()
     var ifShowDialog by remember { mutableStateOf(false) }
-    TopAppBar() {
+    TopAppBar {
         PickDateLabel(modifier, onDateChange, date, dateFormat)
         PickLessonLabel(
             showDialog = ifShowDialog,
@@ -289,8 +290,12 @@ fun StudentsAppBarPreview() {
 fun HomePreview() {
     ElderTheme {
         StudentsScreen(
-            studentsViewModel = StudentsViewModel()
+            studentsViewModel = SelectStudentsViewModel(
+                repository =
+                ElderApplication().repository
+            ),
+            {},
+            {}
         )
     }
-
 }

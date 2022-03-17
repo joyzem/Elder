@@ -1,4 +1,4 @@
-package com.example.elder.ui.model
+package com.example.elder.screens.select
 
 
 data class StudentUiState(
