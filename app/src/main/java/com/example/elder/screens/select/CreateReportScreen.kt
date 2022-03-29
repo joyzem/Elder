@@ -22,27 +22,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Dialog
 import com.example.elder.domain.Lesson
 import com.example.elder.screens.select.StudentUiState
-import com.example.elder.screens.select.SelectStudentsViewModel
+import com.example.elder.screens.select.CreateReportViewModel
 import com.example.elder.ui.theme.ElderTheme
 import java.text.DateFormat
 import java.util.*
 
 @Composable
-fun StudentsScreen(
-    studentsViewModel: SelectStudentsViewModel,
+fun CreateReportScreen(
+    createReportViewModel: CreateReportViewModel,
     onAttendingStudentsClicked: () -> Unit,
     onMissingStudentsClicked: () -> Unit
 ) {
-    val students = studentsViewModel.group
+    val students = createReportViewModel.group
     Scaffold(
         topBar = {
             StudentsAppBar(
-                date = studentsViewModel.date,
-                lesson = studentsViewModel.lesson,
-                onDateChange = studentsViewModel::onDateChanged,
-                onLessonChange = studentsViewModel::onLessonChanged
+                date = createReportViewModel.date,
+                lesson = createReportViewModel.lesson,
+                onDateChange = createReportViewModel::onDateChanged,
+                onLessonChange = createReportViewModel::onLessonChanged
             ) {
-                studentsViewModel.checkAllStudents(checked = true)
+                createReportViewModel.checkAllStudents(checked = true)
             }
         }
     ) {
@@ -51,7 +51,7 @@ fun StudentsScreen(
                 items(items = students) { student ->
                     StudentRow(
                         onStudentChecked = {
-                            studentsViewModel.onStudentChecked(student)
+                            createReportViewModel.onStudentChecked(student)
                         },
                         studentUiState = student
                     )
@@ -289,8 +289,8 @@ fun StudentsAppBarPreview() {
 @Composable
 fun HomePreview() {
     ElderTheme {
-        StudentsScreen(
-            studentsViewModel = SelectStudentsViewModel(
+        CreateReportScreen(
+            createReportViewModel = CreateReportViewModel(
                 repository =
                 ElderApplication().repository
             ),

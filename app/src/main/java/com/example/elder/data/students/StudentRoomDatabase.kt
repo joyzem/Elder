@@ -7,11 +7,10 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.elder.data.GROUP_KEYS
 import com.example.elder.data.Repository
-import com.example.elder.screens.select.StudentUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@Database(entities = arrayOf(StudentEntity::class), version = 1, exportSchema = false)
+@Database(entities = arrayOf(Student::class), version = 1, exportSchema = false)
 abstract class StudentRoomDatabase : RoomDatabase() {
 
     abstract fun studentDao(): StudentDao

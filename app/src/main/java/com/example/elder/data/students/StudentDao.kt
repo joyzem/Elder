@@ -1,6 +1,5 @@
 package com.example.elder.data.students
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
@@ -8,10 +7,10 @@ import kotlinx.coroutines.flow.Flow
 interface StudentDao {
 
     @Query("SELECT * FROM students_table ORDER BY surname ASC")
-    fun getAlphabetizedStudents(): Flow<MutableList<StudentEntity>>
+    fun getAlphabetizedStudents(): Flow<MutableList<Student>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(student: StudentEntity)
+    suspend fun insert(student: Student)
 
     @Query("DELETE FROM students_table WHERE id == :studentId")
     suspend fun deleteStudentById(studentId: Int)

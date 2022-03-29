@@ -1,14 +1,14 @@
 package com.example.elder.data
 
-import com.example.elder.data.students.StudentEntity
+import com.example.elder.data.students.Student
 
 class Repository {
     companion object {
-        fun getGroup(groupKey: GROUP_KEYS): List<StudentEntity> {
+        fun getGroup(groupKey: GROUP_KEYS): List<Student> {
             when (groupKey) {
-                GROUP_KEYS.GROUP01 -> return group01.map { StudentEntity(surname = it) }
-                GROUP_KEYS.GROUP02 -> return group02.map { StudentEntity(surname = it) }
-                GROUP_KEYS.GROUP03 -> return group03.map { StudentEntity(surname = it) }
+                GROUP_KEYS.GROUP01 -> return group01.map { Student(surname = it) }
+                GROUP_KEYS.GROUP02 -> return group02.map { Student(surname = it) }
+                GROUP_KEYS.GROUP03 -> return group03.map { Student(surname = it) }
             }
         }
 

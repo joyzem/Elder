@@ -5,37 +5,51 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
-import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.elder.domain.GroupReport
-import com.example.elder.screens.select.StudentViewModelFactory
-import com.example.elder.screens.select.SelectStudentsViewModel
+import com.example.elder.screens.SplashScreen
+import com.example.elder.screens.select.CreateReportViewModelFactory
+import com.example.elder.screens.select.CreateReportViewModel
 import com.example.elder.ui.theme.ElderTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 class MainActivity : ComponentActivity() {
-
-    val studentsViewModel by viewModels<SelectStudentsViewModel> {
-        StudentViewModelFactory((application as ElderApplication).repository)
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ElderTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    StudentsScreen(
-                        studentsViewModel = studentsViewModel,
-                        onAttendingStudentsClicked = {
-                            sendReport(studentsViewModel.onAttendingStudentsRequest())
-                        },
-                        onMissingStudentsClicked = {
-                            sendReport(studentsViewModel.onMissingStudentsRequest())
+                val navController = rememberNavController()
+                val systemUiController = rememberSystemUiController()
+
+                Surface {
+                    NavHost(navController = navController, startDestination = CREATE_REPORT_ROUTE) {
+                        composable(SPLASH_ROUTE) {
+                            SplashScreen(navController = navController)
                         }
-                    )
+
+                        composable(CREATE_REPORT_ROUTE) {
+                            val createReportViewModel by viewModels<CreateReportViewModel> {
+                                CreateReportViewModelFactory((application as ElderApplication).repository)
+                            }
+                            CreateReportScreen(
+                                createReportViewModel = createReportViewModel,
+                                onAttendingStudentsClicked = {
+                                    sendReport(createReportViewModel.onAttendingStudentsRequest())
+                                },
+                                onMissingStudentsClicked = {
+                                    sendReport(createReportViewModel.onMissingStudentsRequest())
+                                }
+                            )
+                        }
+
+                        composable(MANAGE_ROUTE) {
+
+                        }
+                    }
                 }
             }
         }
