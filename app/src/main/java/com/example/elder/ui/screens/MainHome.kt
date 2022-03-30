@@ -1,4 +1,4 @@
-package com.example.elder.screens
+package com.example.elder.ui.screens
 
 import android.content.Context
 import android.content.Intent
@@ -6,14 +6,13 @@ import android.content.pm.PackageManager
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat.startActivity
-import com.example.elder.ElderApplication
 import com.example.elder.ElderScreen
 import com.example.elder.MainActivity
 import com.example.elder.ReportScreen
 import com.example.elder.data.students.StudentRepository
 import com.example.elder.domain.GroupReport
-import com.example.elder.screens.report.CreateReportViewModelFactory
-import com.example.elder.screens.report.ReportViewModel
+import com.example.elder.ui.screens.report.ReportViewModelFactory
+import com.example.elder.ui.screens.report.ReportViewModel
 
 @Composable
 fun MainHome(
@@ -21,11 +20,9 @@ fun MainHome(
     activity: MainActivity
 ) {
     val createReportViewModel by activity.viewModels<ReportViewModel> {
-        CreateReportViewModelFactory(studentsRep)
+        ReportViewModelFactory(studentsRep)
     }
-
     var tabSelected by remember { mutableStateOf(ElderScreen.Manage)}
-
 
     ReportScreen(
         reportViewModel = createReportViewModel,

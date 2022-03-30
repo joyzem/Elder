@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Dialog
 import com.example.elder.domain.Lesson
-import com.example.elder.screens.report.StudentUiState
-import com.example.elder.screens.report.ReportViewModel
+import com.example.elder.ui.screens.report.StudentUiState
+import com.example.elder.ui.screens.report.ReportViewModel
 import com.example.elder.ui.theme.ElderTheme
 import java.text.DateFormat
 import java.util.*

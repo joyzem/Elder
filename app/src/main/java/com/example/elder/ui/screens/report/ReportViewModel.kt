@@ -1,4 +1,4 @@
-package com.example.elder.screens.report
+package com.example.elder.ui.screens.report
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.*
@@ -76,7 +76,7 @@ class ReportViewModel(private val repository: StudentRepository) : ViewModel() {
     }
 }
 
-class CreateReportViewModelFactory(private val repository: StudentRepository) :
+class ReportViewModelFactory(private val repository: StudentRepository) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ReportViewModel::class.java)) {

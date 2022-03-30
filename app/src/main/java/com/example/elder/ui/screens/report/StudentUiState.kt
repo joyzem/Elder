@@ -1,4 +1,4 @@
-package com.example.elder.screens.report
+package com.example.elder.ui.screens.report
 
 
 data class StudentUiState(
