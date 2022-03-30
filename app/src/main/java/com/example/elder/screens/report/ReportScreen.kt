@@ -21,28 +21,28 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.window.Dialog
 import com.example.elder.domain.Lesson
-import com.example.elder.screens.select.StudentUiState
-import com.example.elder.screens.select.CreateReportViewModel
+import com.example.elder.screens.report.StudentUiState
+import com.example.elder.screens.report.ReportViewModel
 import com.example.elder.ui.theme.ElderTheme
 import java.text.DateFormat
 import java.util.*
 
 @Composable
-fun CreateReportScreen(
-    createReportViewModel: CreateReportViewModel,
+fun ReportScreen(
+    reportViewModel: ReportViewModel,
     onAttendingStudentsClicked: () -> Unit,
     onMissingStudentsClicked: () -> Unit
 ) {
-    val students = createReportViewModel.group
+    val students = reportViewModel.group
     Scaffold(
         topBar = {
             StudentsAppBar(
-                date = createReportViewModel.date,
-                lesson = createReportViewModel.lesson,
-                onDateChange = createReportViewModel::onDateChanged,
-                onLessonChange = createReportViewModel::onLessonChanged
+                date = reportViewModel.date,
+                lesson = reportViewModel.lesson,
+                onDateChange = reportViewModel::onDateChanged,
+                onLessonChange = reportViewModel::onLessonChanged
             ) {
-                createReportViewModel.checkAllStudents(checked = true)
+                reportViewModel.checkAllStudents(checked = true)
             }
         }
     ) {
@@ -51,7 +51,7 @@ fun CreateReportScreen(
                 items(items = students) { student ->
                     StudentRow(
                         onStudentChecked = {
-                            createReportViewModel.onStudentChecked(student)
+                            reportViewModel.onStudentChecked(student)
                         },
                         studentUiState = student
                     )
@@ -289,8 +289,8 @@ fun StudentsAppBarPreview() {
 @Composable
 fun HomePreview() {
     ElderTheme {
-        CreateReportScreen(
-            createReportViewModel = CreateReportViewModel(
+        ReportScreen(
+            reportViewModel = ReportViewModel(
                 repository =
                 ElderApplication().repository
             ),

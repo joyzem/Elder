@@ -1,4 +1,4 @@
-package com.example.elder.screens.select
+package com.example.elder.screens.report
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.*
@@ -11,7 +11,7 @@ import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.util.*
 
-class CreateReportViewModel(private val repository: StudentRepository) : ViewModel() {
+class ReportViewModel(private val repository: StudentRepository) : ViewModel() {
 
     var group: MutableList<StudentUiState> by mutableStateOf(
         mutableStateListOf()
@@ -79,9 +79,9 @@ class CreateReportViewModel(private val repository: StudentRepository) : ViewMod
 class CreateReportViewModelFactory(private val repository: StudentRepository) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(CreateReportViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(ReportViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return CreateReportViewModel(repository) as T
+            return ReportViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
