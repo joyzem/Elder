@@ -285,17 +285,27 @@ fun StudentsAppBarPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview()
 @Composable
 fun HomePreview() {
     ElderTheme {
-        ReportScreen(
-            reportViewModel = ReportViewModel(
-                repository =
-                ElderApplication().repository
-            ),
-            {},
-            {}
-        )
+        Surface() {
+            
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Preview()
+@Composable
+fun PreviewBackdrop() {
+    ElderTheme {
+        BackdropScaffold(
+            appBar = { /*TODO*/ },
+            backLayerContent = { /*TODO*/ },
+            frontLayerContent = {}
+        ) {
+
+        }
     }
 }

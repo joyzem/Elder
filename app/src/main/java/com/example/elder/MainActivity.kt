@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import com.example.elder.base.ElderTabRow
 import com.example.elder.ui.theme.ElderTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,12 +18,22 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ElderApp() {
     ElderTheme {
-        Scaffold(
-
+        BackdropScaffold(
+            appBar = {
+                ElderTabRow(
+                    ElderScreen.values().toList(),
+                    currentScreen = ElderScreen.Report,
+                    onTabSelected = {  }
+                )
+            },
+            backLayerContent = { Text("Back layer") },
+            frontLayerContent = { Text("Front layer") }
         ) {
+
         }
     }
 }

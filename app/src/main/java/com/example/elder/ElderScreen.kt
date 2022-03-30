@@ -2,16 +2,19 @@ package com.example.elder
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class ElderScreen(
+    val title: String,
     val icon: ImageVector
 ) {
     Report(
+        title = "Посещаемость",
         icon = Icons.Filled.Edit
     ),
     Manage(
-        icon = Icons.Filled.Settings
+        title = "Группа",
+        icon = Icons.Filled.Group
     )
 }

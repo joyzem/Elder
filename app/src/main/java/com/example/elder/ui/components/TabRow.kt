@@ -13,9 +13,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,10 +36,10 @@ fun ElderTabRow(
             .fillMaxWidth(1f)
             .height(TabHeight)
     ) {
-        Row(Modifier.selectableGroup()) {
+        Row(Modifier.selectableGroup(), Arrangement.Center) {
             allScreens.forEach { screen ->
                 ElderTab(
-                    text = screen.name,
+                    text = screen.title,
                     icon = screen.icon,
                     onSelected = { onTabSelected(screen) },
                     selected = currentScreen == screen
@@ -68,9 +66,6 @@ fun ElderTab(text: String, icon: ImageVector, onSelected: () -> Unit, selected: 
     )
     Row(
         modifier = Modifier
-            .padding(16.dp)
-            .animateContentSize()
-            .height(TabHeight)
             .selectable(
                 selected = selected,
                 onClick = onSelected,
@@ -82,6 +77,11 @@ fun ElderTab(text: String, icon: ImageVector, onSelected: () -> Unit, selected: 
                     color = Color.Unspecified
                 )
             )
+            .fillMaxHeight()
+            .padding(16.dp)
+            .animateContentSize()
+            .height(TabHeight)
+
             .clearAndSetSemantics { contentDescription = text }
     ) {
         Icon(imageVector = icon, contentDescription = text, tint = tabTintColor)

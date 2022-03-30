@@ -18,3 +18,12 @@ task clean(type: Delete) {
 ext {
     coroutines = '1.6.0'
 }
+
+subprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            // Use experimental APIs
+            freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
+        }
+    }
+}
