@@ -13,58 +13,65 @@ import java.util.*
 
 class ReportViewModel(private val repository: StudentRepository) : ViewModel() {
 
-    var group: MutableList<StudentUiState> by mutableStateOf(
+    var groupName = "ПИ2002"
+    var students: MutableList<StudentUiState> by mutableStateOf(
         mutableStateListOf()
+    )
+        private set
+    var selectMode: SelectMode by mutableStateOf(SelectMode.AttendingStudents)
+        private set
+    var date: Calendar by mutableStateOf(Calendar.getInstance())
+        private set
+    var lesson by mutableStateOf(getCurrentLesson())
+        private set
+    var reportHeader by mutableStateOf(
+        if (selectMode == SelectMode.AttendingStudents) "Присутствующие" else "Отсутствующие"
     )
         private set
 
     init {
         viewModelScope.launch {
             repository.fetchAllStudents().collect {
-                group = it.map { StudentUiState(it.surname) }.toMutableStateList()
+                students = it.map { StudentUiState(it.surname) }.toMutableStateList()
             }
         }
     }
 
-    var date: Calendar by mutableStateOf(Calendar.getInstance())
-        private set
-    var lesson by mutableStateOf(getCurrentLesson())
-        private set
-
     fun onStudentChecked(studentUiState: StudentUiState) {
-        val index = group.indexOf(studentUiState)
-        group[index] = group[index].copy(checked = !studentUiState.checked)
+        val index = students.indexOf(studentUiState)
+        students[index] = students[index].copy(checked = !studentUiState.checked)
     }
 
     fun onDateChanged(newDate: Calendar) {
         date = newDate
+
     }
 
     fun onLessonChanged(newLesson: Lesson) {
         lesson = newLesson
     }
 
-    fun onAttendingStudentsRequest(): GroupReport {
-        val attendingStudents = group.filter { student -> student.checked }
-        return createReport(attendingStudents, "Присутствующие:")
+    fun onSelectModeChanged(newMode: SelectMode) {
+        selectMode = newMode
+        updateReportHeader()
     }
 
-    fun onMissingStudentsRequest(): GroupReport {
-        val missingStudents = group.filter { student -> !student.checked }
-        return createReport(missingStudents, "Отсутствующие:")
+    fun getReport(): GroupReport {
+        val requiredStudents = students.filter { student -> student.checked }
+        return createReport(requiredStudents, "$reportHeader:")
     }
 
     fun checkAllStudents(checked: Boolean) {
         viewModelScope.launch {
-            for (i in 0..group.size - 1) {
-                group[i] = group[i].copy(checked = checked)
+            for (i in 0..students.size - 1) {
+                students[i] = students[i].copy(checked = checked)
             }
         }
     }
 
     private fun createReport(group: List<StudentUiState>, prefix: String): GroupReport {
         val groupReport = GroupReport(
-            subject = "ПИ2002, ${DateFormat.getDateInstance().format(date.time)}, ${lesson.value}",
+            subject = "$groupName, ${DateFormat.getDateInstance().format(date.time)}, ${lesson.value}",
             content = group.joinToString(
                 separator = "\n",
                 prefix = "${prefix}\n",
@@ -74,6 +81,16 @@ class ReportViewModel(private val repository: StudentRepository) : ViewModel() {
         )
         return groupReport
     }
+
+    private fun updateReportHeader() {
+        reportHeader =
+            if (selectMode == SelectMode.AttendingStudents) "Присутствующие" else "Отсутствующие"
+    }
+}
+
+enum class SelectMode {
+    AttendingStudents,
+    MissingStudents
 }
 
 class ReportViewModelFactory(private val repository: StudentRepository) :

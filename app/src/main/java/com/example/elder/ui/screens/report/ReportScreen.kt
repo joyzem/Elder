@@ -1,10 +1,13 @@
 package com.example.elder
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -19,97 +22,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.window.Dialog
 import com.example.elder.domain.Lesson
 import com.example.elder.ui.screens.report.StudentUiState
 import com.example.elder.ui.screens.report.ReportViewModel
+import com.example.elder.ui.screens.report.SelectMode
 import com.example.elder.ui.theme.ElderTheme
 import java.text.DateFormat
 import java.util.*
-
-@Composable
-fun ReportScreen(
-    reportViewModel: ReportViewModel,
-    onAttendingStudentsClicked: () -> Unit,
-    onMissingStudentsClicked: () -> Unit
-) {
-    val students = reportViewModel.group
-    Scaffold(
-        topBar = {
-            StudentsAppBar(
-                date = reportViewModel.date,
-                lesson = reportViewModel.lesson,
-                onDateChange = reportViewModel::onDateChanged,
-                onLessonChange = reportViewModel::onLessonChanged
-            ) {
-                reportViewModel.checkAllStudents(checked = true)
-            }
-        }
-    ) {
-        Column {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(items = students) { student ->
-                    StudentRow(
-                        onStudentChecked = {
-                            reportViewModel.onStudentChecked(student)
-                        },
-                        studentUiState = student
-                    )
-                }
-            }
-            Divider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp),
-                color = Color.DarkGray
-            )
-            Footer(
-                onAttendingStudentsClicked = onAttendingStudentsClicked,
-                onMissingStudentsClicked = onMissingStudentsClicked,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun Footer(
-    onAttendingStudentsClicked: () -> Unit,
-    onMissingStudentsClicked: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(modifier = modifier) {
-        // Attending students
-        OutlinedButton(
-            onClick = onAttendingStudentsClicked,
-            modifier = Modifier
-                .weight(1f),
-            colors = ButtonDefaults.outlinedButtonColors(
-                backgroundColor = MaterialTheme.colors.surface,
-                contentColor = MaterialTheme.colors.onSurface
-            )
-        ) {
-            Text(
-                text = "Присутствующие"
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        // Missing students
-        OutlinedButton(
-            onClick = onMissingStudentsClicked,
-            modifier = Modifier
-                .weight(1f),
-            colors = ButtonDefaults.outlinedButtonColors(
-                backgroundColor = MaterialTheme.colors.surface,
-                contentColor = MaterialTheme.colors.onSurface
-            )
-        ) {
-            Text(
-                text = "Отсутствующие"
-            )
-        }
-    }
-}
 
 @Composable
 fun StudentRow(onStudentChecked: () -> Unit, studentUiState: StudentUiState) {
@@ -133,48 +54,21 @@ fun StudentRow(onStudentChecked: () -> Unit, studentUiState: StudentUiState) {
 }
 
 @Composable
-fun StudentsAppBar(
-    modifier: Modifier = Modifier,
-    date: Calendar,
-    lesson: Lesson,
-    onDateChange: (Calendar) -> Unit,
-    onLessonChange: (Lesson) -> Unit,
-    onSelectAllCLick: () -> Unit
-) {
-    val dateFormat: DateFormat = DateFormat.getDateInstance()
-    var ifShowDialog by remember { mutableStateOf(false) }
-    TopAppBar {
-        PickDateLabel(modifier, onDateChange, date, dateFormat)
-        PickLessonLabel(
-            showDialog = ifShowDialog,
-            lesson = lesson,
-            onShowDialogButton = { ifShowDialog = !ifShowDialog },
-            onLessonChange = onLessonChange
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        IconButton(
-            onClick = onSelectAllCLick
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.select_all),
-                contentDescription = "Select all"
-            )
-        }
-    }
-}
-
-@Composable
 private fun PickDateLabel(
     modifier: Modifier = Modifier,
     onDateChange: (Calendar) -> Unit,
-    date: Calendar,
-    dateFormat: DateFormat
+    date: Calendar
 ) {
     val context = LocalContext.current
-    Card(
-        elevation = 0.dp,
+    Box(
         modifier = modifier
-            .fillMaxHeight()
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.TopStart)
+            .border(
+                0.5.dp,
+                Color.Black.copy(alpha = 0.5f),
+                shape = MaterialTheme.shapes.medium
+            )
             .clickable {
                 DatePickerDialog(
                     context,
@@ -187,19 +81,20 @@ private fun PickDateLabel(
                     date.get(Calendar.MONTH),
                     date.get(Calendar.DATE),
                 ).show()
-            },
-        backgroundColor = Color.Transparent
+            }
     ) {
-        Row(modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 4.dp)) {
+        Row(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = DateFormat.getDateInstance().format(date.time),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+            Spacer(Modifier.weight(1f))
             Icon(
                 painter = painterResource(id = R.drawable.calendar),
                 contentDescription = "Calendar"
-            )
-            Spacer(Modifier.padding(4.dp))
-            Text(
-                text = dateFormat.format(date.time),
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
             )
         }
     }
@@ -207,6 +102,7 @@ private fun PickDateLabel(
 
 @Composable
 private fun PickLessonLabel(
+    modifier: Modifier = Modifier,
     showDialog: Boolean,
     lesson: Lesson,
     onShowDialogButton: () -> Unit,
@@ -218,23 +114,31 @@ private fun PickLessonLabel(
             onLessonClicked = onLessonChange
         )
     }
-    Card(
-        elevation = 0.dp,
-        modifier = Modifier
-            .fillMaxHeight()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.TopStart)
+            .border(
+                0.5.dp,
+                Color.Black.copy(alpha = 0.5f),
+                shape = MaterialTheme.shapes.medium
+            )
             .clickable {
                 onShowDialogButton()
             }
     ) {
-        Row(modifier = Modifier.padding(start = 4.dp, top = 16.dp, bottom = 16.dp, end = 16.dp)) {
-            Icon(
-                painter = painterResource(id = R.drawable.expand),
-                contentDescription = "Choose lesson"
-            )
+        Row(
+            modifier = Modifier.padding(16.dp)
+        ) {
             Text(
                 text = lesson.value,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
+            )
+            Spacer(Modifier.weight(1f))
+            Icon(
+                painter = painterResource(id = R.drawable.calendar),
+                contentDescription = "Calendar"
             )
         }
     }
@@ -272,16 +176,156 @@ fun LessonDialog(
     }
 }
 
+@Composable
+fun BackLayer(
+    modifier: Modifier = Modifier,
+    date: Calendar,
+    onDateChange: (Calendar) -> Unit,
+    lesson: Lesson,
+    onLessonChange: (Lesson) -> Unit,
+    selectMode: SelectMode,
+    onSelectModeChanged: (SelectMode) -> Unit
+) {
+    Surface(modifier = modifier) {
+        Column {
+            var showDialog by remember { mutableStateOf(false) }
+            PickDateLabel(onDateChange = onDateChange, date = date)
+            Spacer(Modifier.height(16.dp))
+            PickLessonLabel(
+                showDialog = showDialog,
+                lesson = lesson,
+                onShowDialogButton = { showDialog = !showDialog },
+                onLessonChange = onLessonChange
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            SelectModeRadioGroup(selectMode = selectMode, onSelectModeChanged = onSelectModeChanged)
+        }
+    }
+}
+
+@Composable
+fun SelectModeRadioGroup(
+    modifier: Modifier = Modifier,
+    selectMode: SelectMode,
+    onSelectModeChanged: (SelectMode) -> Unit
+) {
+    Row(modifier = modifier.selectableGroup()) {
+        Row(
+            Modifier
+                .selectable(
+                    selected = selectMode == SelectMode.AttendingStudents,
+                    onClick = { onSelectModeChanged(SelectMode.AttendingStudents) },
+                    role = Role.RadioButton
+                )
+                .padding(vertical = 8.dp)
+        ) {
+            RadioButton(
+                selected = selectMode == SelectMode.AttendingStudents,
+                onClick = null
+            )
+            Text(text = "Присутствующие", modifier = Modifier.align(Alignment.CenterVertically))
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Row(
+            Modifier
+                .selectable(
+                    selected = selectMode == SelectMode.MissingStudents,
+                    onClick = { onSelectModeChanged(SelectMode.MissingStudents) },
+                    role = Role.RadioButton
+                )
+                .padding(vertical = 8.dp)
+        ) {
+            RadioButton(
+                selected = selectMode == SelectMode.MissingStudents,
+                onClick = null
+            )
+            Text(text = "Отсутствующие", modifier = Modifier.align(Alignment.CenterVertically))
+        }
+    }
+}
+
+@Composable
+fun FrontLayer(
+    modifier: Modifier = Modifier,
+    reportViewModel: ReportViewModel,
+    onSendClicked: () -> Unit
+) {
+    val students = reportViewModel.students
+    Scaffold(modifier = modifier) { innerPadding ->
+        Column {
+            ListHeader(
+                modifier = Modifier.padding(start = 16.dp),
+                reportHeader = reportViewModel.reportHeader,
+                onUnselectAllClicked = reportViewModel::checkAllStudents,
+                onSelectAllClicked = reportViewModel::checkAllStudents,
+                onSendClicked = onSendClicked
+            )
+            Divider(Modifier.height(1.dp))
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(items = students) { student ->
+                    StudentRow(
+                        onStudentChecked = {
+                            reportViewModel.onStudentChecked(student)
+                        },
+                        studentUiState = student
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ListHeader(
+    modifier: Modifier = Modifier,
+    reportHeader: String,
+    onUnselectAllClicked: (Boolean) -> Unit,
+    onSelectAllClicked: (Boolean) -> Unit,
+    onSendClicked: () -> Unit
+) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(text = reportHeader)
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(onClick = { onUnselectAllClicked(false) }) {
+            Icon(
+                painter = painterResource(id = R.drawable.unselect_all),
+                contentDescription = "Unselect all"
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        IconButton(onClick = { onSelectAllClicked(true) }) {
+            Icon(
+                painter = painterResource(id = R.drawable.select_all),
+                contentDescription = "Select all"
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        IconButton(onClick = onSendClicked) {
+            Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BackLayerPreview() {
+    ElderTheme {
+        BackLayer(
+            modifier = Modifier.padding(16.dp),
+            date = Calendar.getInstance(),
+            onDateChange = { },
+            onLessonChange = { },
+            lesson = Lesson.FIRST,
+            selectMode = SelectMode.AttendingStudents,
+            onSelectModeChanged = {}
+        )
+    }
+}
+
 @Preview
 @Composable
-fun StudentsAppBarPreview() {
+fun FrontLayerPreview() {
     ElderTheme {
-        StudentsAppBar(
-            date = Calendar.getInstance(),
-            lesson = Lesson.FIRST,
-            onDateChange = {},
-            onLessonChange = {}
-        ) {}
     }
 }
 
@@ -290,21 +334,6 @@ fun StudentsAppBarPreview() {
 fun HomePreview() {
     ElderTheme {
         Surface() {
-            
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Preview()
-@Composable
-fun PreviewBackdrop() {
-    ElderTheme {
-        BackdropScaffold(
-            appBar = { /*TODO*/ },
-            backLayerContent = { /*TODO*/ },
-            frontLayerContent = {}
-        ) {
 
         }
     }
