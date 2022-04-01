@@ -4,9 +4,13 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/calendar.xml" value="0.1845" />
+        <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/check_all.xml" value="0.1705" />
         <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/expand.xml" value="0.1845" />
         <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/ic_edit.xml" value="0.159" />
+        <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/person_add.xml" value="0.1705" />
+        <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/select_all.xml" value="0.1705" />
         <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/send.xml" value="0.156" />
+        <entry key="..\:/Users/79184/AndroidStudioProjects/Elder/app/src/main/res/drawable/uncheck_all.xml" value="0.1705" />
       </map>
     </option>
   </component>

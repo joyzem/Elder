@@ -11,3 +11,5 @@ class ElderApplication : Application() {
     val database by lazy { StudentRoomDatabase.getDatabase(this, applicationScope) }
     val repository by lazy { StudentRepository(database.studentDao()) }
 }
+
+const val GROUP_NAME = "groupName"

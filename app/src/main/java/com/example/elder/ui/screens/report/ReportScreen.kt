@@ -25,7 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.window.Dialog
 import com.example.elder.domain.Lesson
-import com.example.elder.ui.screens.report.StudentUiState
+import com.example.elder.ui.screens.report.ReportStudentUiState
 import com.example.elder.ui.screens.report.ReportViewModel
 import com.example.elder.ui.screens.report.SelectMode
 import com.example.elder.ui.theme.ElderTheme
@@ -33,12 +33,70 @@ import java.text.DateFormat
 import java.util.*
 
 @Composable
-fun StudentRow(onStudentChecked: () -> Unit, studentUiState: StudentUiState) {
+fun ReportFrontLayer(
+    modifier: Modifier = Modifier,
+    reportViewModel: ReportViewModel,
+    onSendClicked: () -> Unit
+) {
+    val students = reportViewModel.students
+    Scaffold(modifier = modifier) {
+        Column {
+            ListHeader(
+                modifier = Modifier.padding(start = 16.dp),
+                reportHeader = reportViewModel.reportHeader,
+                onUnselectAllClicked = reportViewModel::checkAllStudents,
+                onSelectAllClicked = reportViewModel::checkAllStudents,
+                onSendClicked = onSendClicked
+            )
+            Divider(Modifier.height(1.dp))
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(items = students) { student ->
+                    CheckableStudentRow(
+                        onStudentChecked = {
+                            reportViewModel.onStudentChecked(student)
+                        },
+                        reportStudentUiState = student
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReportBackLayer(
+    modifier: Modifier = Modifier,
+    date: Calendar,
+    onDateChange: (Calendar) -> Unit,
+    lesson: Lesson,
+    onLessonChange: (Lesson) -> Unit,
+    selectMode: SelectMode,
+    onSelectModeChanged: (SelectMode) -> Unit
+) {
+    Surface(modifier = modifier) {
+        Column {
+            var showDialog by remember { mutableStateOf(false) }
+            PickDateLabel(onDateChange = onDateChange, date = date)
+            Spacer(Modifier.height(16.dp))
+            PickLessonLabel(
+                showDialog = showDialog,
+                lesson = lesson,
+                onShowDialogButton = { showDialog = !showDialog },
+                onLessonChange = onLessonChange
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            SelectModeRadioGroup(selectMode = selectMode, onSelectModeChanged = onSelectModeChanged)
+        }
+    }
+}
+
+@Composable
+fun CheckableStudentRow(onStudentChecked: () -> Unit, reportStudentUiState: ReportStudentUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .toggleable(
-                studentUiState.checked, onValueChange = {
+                reportStudentUiState.checked, onValueChange = {
                     onStudentChecked()
                 },
                 role = Role.Checkbox
@@ -46,10 +104,10 @@ fun StudentRow(onStudentChecked: () -> Unit, studentUiState: StudentUiState) {
             .padding(16.dp)
     ) {
         Checkbox(
-            checked = studentUiState.checked, onCheckedChange = null
+            checked = reportStudentUiState.checked, onCheckedChange = null
         )
         Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-        Text(studentUiState.name)
+        Text(reportStudentUiState.student.surname)
     }
 }
 
@@ -137,8 +195,8 @@ private fun PickLessonLabel(
             )
             Spacer(Modifier.weight(1f))
             Icon(
-                painter = painterResource(id = R.drawable.calendar),
-                contentDescription = "Calendar"
+                painter = painterResource(id = R.drawable.ic_time),
+                contentDescription = "Lesson"
             )
         }
     }
@@ -150,12 +208,10 @@ fun LessonDialog(
     onLessonClicked: (Lesson) -> Unit
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
-        Card(
-            //shape = MaterialTheme.shapes.medium,
-            shape = RoundedCornerShape(10.dp),
-            // modifier = modifier.size(280.dp, 240.dp)
-            modifier = Modifier.padding(10.dp, 5.dp, 10.dp, 10.dp),
-            elevation = 8.dp
+        Surface(
+            modifier = Modifier.padding(16.dp),
+            color = MaterialTheme.colors.surface,
+            shape = RoundedCornerShape(8.dp)
         ) {
             Column {
                 Lesson.values().forEach { lesson ->
@@ -177,33 +233,6 @@ fun LessonDialog(
 }
 
 @Composable
-fun BackLayer(
-    modifier: Modifier = Modifier,
-    date: Calendar,
-    onDateChange: (Calendar) -> Unit,
-    lesson: Lesson,
-    onLessonChange: (Lesson) -> Unit,
-    selectMode: SelectMode,
-    onSelectModeChanged: (SelectMode) -> Unit
-) {
-    Surface(modifier = modifier) {
-        Column {
-            var showDialog by remember { mutableStateOf(false) }
-            PickDateLabel(onDateChange = onDateChange, date = date)
-            Spacer(Modifier.height(16.dp))
-            PickLessonLabel(
-                showDialog = showDialog,
-                lesson = lesson,
-                onShowDialogButton = { showDialog = !showDialog },
-                onLessonChange = onLessonChange
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            SelectModeRadioGroup(selectMode = selectMode, onSelectModeChanged = onSelectModeChanged)
-        }
-    }
-}
-
-@Composable
 fun SelectModeRadioGroup(
     modifier: Modifier = Modifier,
     selectMode: SelectMode,
@@ -215,7 +244,7 @@ fun SelectModeRadioGroup(
                 .selectable(
                     selected = selectMode == SelectMode.AttendingStudents,
                     onClick = { onSelectModeChanged(SelectMode.AttendingStudents) },
-                    role = Role.RadioButton
+                    role = Role.RadioButton,
                 )
                 .padding(vertical = 8.dp)
         ) {
@@ -244,36 +273,7 @@ fun SelectModeRadioGroup(
     }
 }
 
-@Composable
-fun FrontLayer(
-    modifier: Modifier = Modifier,
-    reportViewModel: ReportViewModel,
-    onSendClicked: () -> Unit
-) {
-    val students = reportViewModel.students
-    Scaffold(modifier = modifier) { innerPadding ->
-        Column {
-            ListHeader(
-                modifier = Modifier.padding(start = 16.dp),
-                reportHeader = reportViewModel.reportHeader,
-                onUnselectAllClicked = reportViewModel::checkAllStudents,
-                onSelectAllClicked = reportViewModel::checkAllStudents,
-                onSendClicked = onSendClicked
-            )
-            Divider(Modifier.height(1.dp))
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(items = students) { student ->
-                    StudentRow(
-                        onStudentChecked = {
-                            reportViewModel.onStudentChecked(student)
-                        },
-                        studentUiState = student
-                    )
-                }
-            }
-        }
-    }
-}
+
 
 @Composable
 fun ListHeader(
@@ -288,14 +288,14 @@ fun ListHeader(
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = { onUnselectAllClicked(false) }) {
             Icon(
-                painter = painterResource(id = R.drawable.unselect_all),
+                painter = painterResource(id = R.drawable.uncheck_all),
                 contentDescription = "Unselect all"
             )
         }
         Spacer(Modifier.width(8.dp))
         IconButton(onClick = { onSelectAllClicked(true) }) {
             Icon(
-                painter = painterResource(id = R.drawable.select_all),
+                painter = painterResource(id = R.drawable.check_all),
                 contentDescription = "Select all"
             )
         }
@@ -310,7 +310,7 @@ fun ListHeader(
 @Composable
 fun BackLayerPreview() {
     ElderTheme {
-        BackLayer(
+        ReportBackLayer(
             modifier = Modifier.padding(16.dp),
             date = Calendar.getInstance(),
             onDateChange = { },

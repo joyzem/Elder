@@ -11,7 +11,7 @@ class StudentRepository(private val studentDao: StudentDao) {
         studentDao.insert(sEntity)
     }
 
-    suspend fun delete(studentId: Int) {
-        studentDao.deleteStudentById(studentId)
+    suspend fun delete(student: Student) {
+        studentDao.deleteStudent(student = student)
     }
 }

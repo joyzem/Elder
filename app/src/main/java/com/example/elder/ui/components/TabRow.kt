@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.elder.ElderScreen
 import java.util.*
 
@@ -29,12 +30,17 @@ fun ElderTabRow(
     currentScreen: ElderScreen
 ) {
     TopAppBar(elevation = 2.dp) {
-        Row(Modifier.selectableGroup().fillMaxWidth(), Arrangement.Center) {
+        Row(
+            Modifier
+                .selectableGroup()
+                .fillMaxWidth(), Arrangement.Center) {
             allScreens.forEach { screen ->
                 ElderTab(
                     text = screen.title,
                     icon = screen.icon,
-                    onSelected = { onTabSelected(screen) },
+                    onSelected = {
+                        onTabSelected(screen)
+                    },
                     selected = currentScreen == screen
                 )
             }
