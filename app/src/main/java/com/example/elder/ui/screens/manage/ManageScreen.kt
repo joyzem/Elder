@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,6 +58,7 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
         val context = LocalContext.current
         var isInputIncorrect by remember { mutableStateOf(false) }
         OutlinedTextField(
+            shape = CircleShape,
             value = groupName,
             onValueChange = {
                 groupName = it
@@ -64,10 +66,8 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
             },
             label = { Text(text = "Номер группы") },
             modifier = Modifier.weight(1f),
-            isError = isInputIncorrect,
-            colors = getOutlinedTextFieldColors()
+            isError = isInputIncorrect
         )
-        Spacer(modifier = Modifier.width(16.dp))
         IconButton(
             onClick = {
                 if (groupName.isEmpty()) {
@@ -124,13 +124,14 @@ fun AddStudentDialog(
             Surface(
                 modifier = Modifier.padding(16.dp),
                 color = MaterialTheme.colors.surface,
-                shape = MaterialTheme.shapes.small
+                shape = MaterialTheme.shapes.medium
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     OutlinedTextField(
+                        shape = CircleShape,
                         value = studentName,
                         onValueChange = {
                             studentName = it
@@ -138,7 +139,6 @@ fun AddStudentDialog(
                         },
                         label = { Text("Фамилия студента") },
                         isError = isError,
-                        colors = getOutlinedTextFieldColors(),
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -151,7 +151,8 @@ fun AddStudentDialog(
                                 makeToast(context, "$studentName добавлен(а)")
                                 studentName = ""
                             }
-                        }
+                        },
+                        shape = CircleShape
                     ) {
                         Text(text = "Добавить")
                     }
@@ -189,11 +190,3 @@ fun ManageableStudentRow(
         }
     }
 }
-
-@Composable
-private fun getOutlinedTextFieldColors() = TextFieldDefaults.outlinedTextFieldColors(
-    textColor = MaterialTheme.colors.onSurface,
-    cursorColor = MaterialTheme.colors.onSurface,
-    focusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = ContentAlpha.disabled),
-    focusedLabelColor = MaterialTheme.colors.onSurface.copy(ContentAlpha.medium)
-)

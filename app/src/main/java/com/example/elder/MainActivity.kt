@@ -5,10 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.elder.base.ElderTabRow
 import com.example.elder.domain.ElderScreen
@@ -21,7 +23,10 @@ import com.example.elder.ui.screens.report.ReportBackLayer
 import com.example.elder.ui.screens.report.ReportFrontLayer
 import com.example.elder.ui.screens.report.ReportViewModel
 import com.example.elder.ui.screens.report.ReportViewModelFactory
+import com.example.elder.ui.theme.DarkThemeColors
 import com.example.elder.ui.theme.ElderTheme
+import com.example.elder.ui.theme.LightThemeColors
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 class MainActivity : ComponentActivity() {
 
@@ -76,6 +81,15 @@ fun ElderApp(
     ElderTheme {
         var currentScreen by remember { mutableStateOf(ElderScreen.Report) }
         val backdropScaffoldState = rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
+        val systemUiController = rememberSystemUiController()
+        val isDarkTheme = isSystemInDarkTheme()
+
+        SideEffect {
+            systemUiController.setStatusBarColor(
+                color = if (!isDarkTheme) LightThemeColors.background else DarkThemeColors.surface,
+                darkIcons = !isDarkTheme
+            )
+        }
         BackdropScaffold(
             scaffoldState = backdropScaffoldState,
             appBar = {
@@ -91,7 +105,7 @@ fun ElderApp(
                 when (currentScreen) {
                     ElderScreen.Report -> {
                         ReportBackLayer(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                             reportViewModel = reportViewModel,
                             selectMode = reportViewModel.selectMode,
                             onSelectModeChanged = reportViewModel::onSelectModeChanged
@@ -100,11 +114,10 @@ fun ElderApp(
                     ElderScreen.Manage -> {
                         ManageBackLayer(
                             manageViewModel = manageViewModel,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 16.dp)
                         )
                     }
                 }
-
             },
             frontLayerContent = {
                 when (currentScreen) {

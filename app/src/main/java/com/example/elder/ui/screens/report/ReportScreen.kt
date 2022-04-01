@@ -1,19 +1,17 @@
 package com.example.elder.ui.screens.report
 
 import android.app.DatePickerDialog
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -71,18 +69,24 @@ fun ReportBackLayer(
         Column {
             var showDialog by remember { mutableStateOf(false) }
             PickDateLabel(
+                modifier = Modifier.padding(2.dp),
                 onDateChange = reportViewModel::onDateChanged,
                 date = reportViewModel.date
             )
             Spacer(Modifier.height(16.dp))
             PickLessonLabel(
+                modifier = Modifier.padding(2.dp),
                 showDialog = showDialog,
                 lesson = reportViewModel.lesson,
                 onShowDialogButton = { showDialog = !showDialog },
                 onLessonChange = reportViewModel::onLessonChanged
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            SelectModeRadioGroup(selectMode = selectMode, onSelectModeChanged = onSelectModeChanged)
+            Spacer(modifier = Modifier.height(4.dp))
+            SelectModeRadioGroup(
+                modifier = Modifier.fillMaxWidth(),
+                selectMode = selectMode,
+                onSelectModeChanged = onSelectModeChanged
+            )
         }
     }
 }
@@ -118,7 +122,7 @@ private fun PickDateLabel(
     date: Calendar
 ) {
     val context = LocalContext.current
-    ClickableBox(
+    ClickableCard(
         modifier = modifier,
         onClick = {
             DatePickerDialog(
@@ -173,7 +177,7 @@ private fun PickLessonLabel(
             onLessonClicked = onLessonChange
         )
     }
-    ClickableBox(modifier = modifier, onClick = onShowDialogButton) {
+    ClickableCard(modifier = modifier, onClick = onShowDialogButton) {
         TextSpaceIconRow(
             modifier = Modifier.padding(16.dp),
             text = lesson.value,
@@ -183,24 +187,20 @@ private fun PickLessonLabel(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ClickableBox(
+private fun ClickableCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    content: @Composable (BoxScope.() -> Unit)
+    content: @Composable (() -> Unit)
 ) {
-    Box(
+    Card(
+        shape = CircleShape,
+        onClick = { onClick() },
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentSize(Alignment.TopStart)
-            .border(
-                0.5.dp,
-                Color.Black.copy(alpha = 0.5f),
-                shape = MaterialTheme.shapes.medium
-            )
-            .clickable {
-                onClick()
-            }
+            .wrapContentSize(Alignment.TopStart),
+        elevation = 4.dp
     ) {
         content()
     }
@@ -242,14 +242,13 @@ private fun SelectModeRadioGroup(
     selectMode: SelectMode,
     onSelectModeChanged: (SelectMode) -> Unit
 ) {
-    Row(modifier = modifier.selectableGroup()) {
+    Row(modifier = modifier.selectableGroup(), horizontalArrangement = Arrangement.SpaceEvenly) {
         TextRadioButton(
             currentSelectMode = selectMode,
             requiredSelectMode = SelectMode.AttendingStudents,
             onSelectModeChanged = onSelectModeChanged,
             text = "Присутствующие"
         )
-        Spacer(modifier = Modifier.weight(1f))
         TextRadioButton(
             currentSelectMode = selectMode,
             requiredSelectMode = SelectMode.MissingStudents,
@@ -259,28 +258,29 @@ private fun SelectModeRadioGroup(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun TextRadioButton(
+    modifier: Modifier = Modifier,
     currentSelectMode: SelectMode,
     requiredSelectMode: SelectMode,
     onSelectModeChanged: (SelectMode) -> Unit,
     text: String
 ) {
-    Row(
-        Modifier
-            .selectable(
-                selected = currentSelectMode == requiredSelectMode,
-                onClick = { onSelectModeChanged(requiredSelectMode) },
-                role = Role.RadioButton
-            )
-            .padding(vertical = 8.dp)
+    Card(
+        modifier = modifier,
+        shape = CircleShape,
+        elevation = 0.dp,
+        onClick = { onSelectModeChanged(requiredSelectMode) }
     ) {
-        RadioButton(
-            selected = currentSelectMode == requiredSelectMode,
-            onClick = null
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(text = text, modifier = Modifier.align(Alignment.CenterVertically))
+        Row(Modifier.padding(8.dp)) {
+            RadioButton(
+                selected = currentSelectMode == requiredSelectMode,
+                onClick = null
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(text = text, modifier = Modifier.align(Alignment.CenterVertically))
+        }
     }
 }
 

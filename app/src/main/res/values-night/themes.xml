@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Elder" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.Elder" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">?attr/colorOnSurface</item>
-        <item name="colorPrimary">#212121</item>
+        <item name="colorPrimary">#FFaac7ff</item>
         <item name="colorPrimaryVariant">#000000</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#212121</item>
+        <item name="colorSecondary">#FFbec6dc</item>
         <item name="colorOnSecondary">#FFFFFF</item>
-        <item name="colorSurface">#A6A6A6</item>
+        <item name="colorSurface">#FF1a1b1f</item>
         <item name="colorOnSurface">#212121</item>
         <item name="colorOnBackground">#212121</item>
     </style>

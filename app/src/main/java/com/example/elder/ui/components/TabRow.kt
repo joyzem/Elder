@@ -28,11 +28,17 @@ fun ElderTabRow(
     onTabSelected: (ElderScreen) -> Unit,
     currentScreen: ElderScreen
 ) {
-    TopAppBar(elevation = 2.dp) {
+    TopAppBar(
+        elevation = 2.dp,
+        backgroundColor = MaterialTheme.colors.surface,
+        contentColor = MaterialTheme.colors.onSurface
+    ) {
         Row(
             Modifier
                 .selectableGroup()
-                .fillMaxWidth(), Arrangement.Center) {
+                .fillMaxWidth(),
+            Arrangement.Center
+        ) {
             allScreens.forEach { screen ->
                 ElderTab(
                     text = screen.title,
@@ -59,7 +65,7 @@ fun ElderTab(text: String, icon: ImageVector, onSelected: () -> Unit, selected: 
         )
     }
     val tabTintColor by animateColorAsState(
-        targetValue = if (selected) color else color.copy(alpha = InactiveTabOpacity),
+        targetValue = if (selected) MaterialTheme.colors.primary else color.copy(alpha = InactiveTabOpacity),
         animationSpec = animSpec
     )
     Row(
