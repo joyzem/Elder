@@ -5,12 +5,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.consumePositionChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.example.elder.base.ElderTabRow
 import com.example.elder.domain.ElderScreen
@@ -80,7 +83,8 @@ fun ElderApp(
 ) {
     ElderTheme {
         var currentScreen by remember { mutableStateOf(ElderScreen.Report) }
-        val backdropScaffoldState = rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
+        val backdropScaffoldState =
+            rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
         val systemUiController = rememberSystemUiController()
         val isDarkTheme = isSystemInDarkTheme()
 
@@ -114,7 +118,12 @@ fun ElderApp(
                     ElderScreen.Manage -> {
                         ManageBackLayer(
                             manageViewModel = manageViewModel,
-                            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 16.dp)
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 8.dp,
+                                top = 8.dp,
+                                bottom = 16.dp
+                            )
                         )
                     }
                 }
@@ -132,8 +141,23 @@ fun ElderApp(
                     }
                 }
             },
+            gesturesEnabled = true,
             frontLayerElevation = 8.dp,
-            backLayerBackgroundColor = MaterialTheme.colors.surface
+            backLayerBackgroundColor = MaterialTheme.colors.surface,
+            modifier = Modifier.pointerInput(Unit) {
+                this.detectHorizontalDragGestures { change, dragAmount ->
+                    val offset = Offset(x = dragAmount, y = 0f)
+                    val newValue = Offset(offset.x.coerceIn(-200f, 200f), y = 0f)
+                    if (newValue.x >= 55) {
+                        currentScreen = ElderScreen.Report
+                        return@detectHorizontalDragGestures
+                    } else if (newValue.x <= -55){
+                        currentScreen = ElderScreen.Manage
+                        return@detectHorizontalDragGestures
+                    }
+                    change.consumePositionChange()
+                }
+            }
         )
     }
 }
