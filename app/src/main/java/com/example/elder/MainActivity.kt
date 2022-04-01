@@ -11,11 +11,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.elder.base.ElderTabRow
+import com.example.elder.domain.ElderScreen
 import com.example.elder.domain.GroupReport
 import com.example.elder.ui.screens.manage.ManageBackLayer
 import com.example.elder.ui.screens.manage.ManageFrontLayer
 import com.example.elder.ui.screens.manage.ManageViewModel
 import com.example.elder.ui.screens.manage.ManageViewModelFactory
+import com.example.elder.ui.screens.report.ReportBackLayer
+import com.example.elder.ui.screens.report.ReportFrontLayer
 import com.example.elder.ui.screens.report.ReportViewModel
 import com.example.elder.ui.screens.report.ReportViewModelFactory
 import com.example.elder.ui.theme.ElderTheme
@@ -72,7 +75,9 @@ fun ElderApp(
 ) {
     ElderTheme {
         var currentScreen by remember { mutableStateOf(ElderScreen.Report) }
+        val backdropScaffoldState = rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
         BackdropScaffold(
+            scaffoldState = backdropScaffoldState,
             appBar = {
                 ElderTabRow(
                     ElderScreen.values().toList(),
@@ -87,17 +92,15 @@ fun ElderApp(
                     ElderScreen.Report -> {
                         ReportBackLayer(
                             modifier = Modifier.padding(16.dp),
-                            date = reportViewModel.date,
-                            onDateChange = reportViewModel::onDateChanged,
-                            lesson = reportViewModel.lesson,
-                            onLessonChange = reportViewModel::onLessonChanged,
+                            reportViewModel = reportViewModel,
                             selectMode = reportViewModel.selectMode,
                             onSelectModeChanged = reportViewModel::onSelectModeChanged
                         )
                     }
                     ElderScreen.Manage -> {
                         ManageBackLayer(
-                            manageViewModel = manageViewModel, modifier = Modifier.padding(16.dp)
+                            manageViewModel = manageViewModel,
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }

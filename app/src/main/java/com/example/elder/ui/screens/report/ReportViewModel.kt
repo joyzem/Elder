@@ -49,7 +49,6 @@ class ReportViewModel(application: Application, private val repository: StudentR
 
     fun onDateChanged(newDate: Calendar) {
         date = newDate
-
     }
 
     fun onLessonChanged(newLesson: Lesson) {
@@ -68,7 +67,7 @@ class ReportViewModel(application: Application, private val repository: StudentR
 
     fun checkAllStudents(checked: Boolean) {
         viewModelScope.launch {
-            for (i in 0..students.size - 1) {
+            for (i in 0 until students.size) {
                 students[i] = students[i].copy(checked = checked)
             }
         }
@@ -76,7 +75,8 @@ class ReportViewModel(application: Application, private val repository: StudentR
 
     private fun getGroupName(): String? {
         return try {
-            getApplication<ElderApplication>().applicationContext.openFileInput(GROUP_NAME).bufferedReader().readLine()
+            getApplication<ElderApplication>().applicationContext.openFileInput(GROUP_NAME)
+                .bufferedReader().readLine()
         } catch (e: Exception) {
             null
         }
@@ -92,7 +92,8 @@ class ReportViewModel(application: Application, private val repository: StudentR
                 prefix = "${prefix}\n",
                 transform = { studentUiState ->
                     studentUiState.student.surname
-                })
+                }
+            )
         )
         return groupReport
     }
@@ -120,5 +121,4 @@ class ReportViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }

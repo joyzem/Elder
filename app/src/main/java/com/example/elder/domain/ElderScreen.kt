@@ -1,4 +1,4 @@
-package com.example.elder
+package com.example.elder.domain
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit

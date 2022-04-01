@@ -19,8 +19,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.elder.ElderScreen
+import com.example.elder.domain.ElderScreen
 import java.util.*
 
 @Composable
@@ -80,7 +79,6 @@ fun ElderTab(text: String, icon: ImageVector, onSelected: () -> Unit, selected: 
             .padding(16.dp)
             .animateContentSize()
             .height(TabHeight)
-
             .clearAndSetSemantics { contentDescription = text }
     ) {
         Icon(imageVector = icon, contentDescription = text, tint = tabTintColor)
