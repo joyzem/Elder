@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.window.Dialog
 import com.example.elder.R
 import com.example.elder.domain.Lesson
+import com.example.elder.ui.components.ClickableCard
 import java.text.DateFormat
 import java.util.*
 
@@ -187,25 +188,6 @@ private fun PickLessonLabel(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-private fun ClickableCard(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    content: @Composable (() -> Unit)
-) {
-    Card(
-        shape = CircleShape,
-        onClick = { onClick() },
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentSize(Alignment.TopStart),
-        elevation = 4.dp
-    ) {
-        content()
-    }
-}
-
 @Composable
 private fun LessonDialog(
     onDismissRequest: () -> Unit,
@@ -213,7 +195,7 @@ private fun LessonDialog(
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             color = MaterialTheme.colors.surface,
             shape = RoundedCornerShape(8.dp)
         ) {

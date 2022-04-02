@@ -14,4 +14,8 @@ class StudentRepository(private val studentDao: StudentDao) {
     suspend fun delete(student: Student) {
         studentDao.deleteStudent(student = student)
     }
+
+    suspend fun deleteAllStudents() {
+        studentDao.cleanTable()
+    }
 }

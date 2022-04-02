@@ -12,10 +12,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.elder.R
 import com.example.elder.data.students.Student
+import com.example.elder.ui.screens.parsing.AutoFillDialogScreen
+import com.example.elder.ui.screens.parsing.StudentsParsingStatus
 
 @Composable
 fun ManageFrontLayer(
@@ -57,6 +61,33 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
         var groupName by remember { mutableStateOf(manageViewModel.groupName ?: "") }
         val context = LocalContext.current
         var isInputIncorrect by remember { mutableStateOf(false) }
+        var ifShowAutoFillingDialog by remember { mutableStateOf(false) }
+        if (ifShowAutoFillingDialog) {
+            AutoFillDialogScreen(
+                groupName,
+                manageViewModel = manageViewModel,
+                onDismissRequest = {
+                    groupName = groupName.toUpperCase(Locale.current)
+                    manageViewModel.saveGroupName(
+                        groupName = groupName,
+                        context = context
+                    )
+                    ifShowAutoFillingDialog = false
+                    makeToast(context, "Номер группы сохранен")
+                    manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
+                },
+                onSuccessAdded = {
+                    groupName = groupName.toUpperCase(Locale.current)
+                    manageViewModel.saveGroupName(
+                        groupName = groupName,
+                        context = context
+                    )
+                    makeToast(context, "Группа добавлена!")
+                    ifShowAutoFillingDialog = false
+                    manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
+                }
+            )
+        }
         OutlinedTextField(
             shape = CircleShape,
             value = groupName,
@@ -74,11 +105,7 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
                     isInputIncorrect = true
                     makeToast(context, "Заполните поле")
                 } else {
-                    manageViewModel.saveGroupName(
-                        groupName = groupName,
-                        context = context
-                    )
-                    makeToast(context, "Имя группы сохранено")
+                    ifShowAutoFillingDialog = true
                 }
             },
             modifier = Modifier.align(Alignment.CenterVertically)
@@ -90,7 +117,6 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
         }
     }
 }
-
 
 @Composable
 private fun ManageListHeader(

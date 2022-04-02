@@ -14,4 +14,7 @@ interface StudentDao {
 
     @Delete
     suspend fun deleteStudent(student: Student)
+
+    @Query("DELETE FROM students_table")
+    suspend fun cleanTable()
 }

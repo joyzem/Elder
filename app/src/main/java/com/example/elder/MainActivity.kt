@@ -10,6 +10,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.consumePositionChange
@@ -82,7 +83,7 @@ fun ElderApp(
     onSendReport: (GroupReport) -> Unit
 ) {
     ElderTheme {
-        var currentScreen by remember { mutableStateOf(ElderScreen.Report) }
+        var currentScreen by rememberSaveable { mutableStateOf(ElderScreen.Report) }
         val backdropScaffoldState =
             rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
         val systemUiController = rememberSystemUiController()
