@@ -1,4 +1,4 @@
-package com.example.elder.base
+package com.example.elder.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize

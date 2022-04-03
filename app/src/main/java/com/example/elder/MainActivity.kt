@@ -16,9 +16,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.example.elder.base.ElderTabRow
 import com.example.elder.domain.ElderScreen
 import com.example.elder.domain.GroupReport
+import com.example.elder.ui.components.ElderTabRow
 import com.example.elder.ui.screens.manage.ManageBackLayer
 import com.example.elder.ui.screens.manage.ManageFrontLayer
 import com.example.elder.ui.screens.manage.ManageViewModel

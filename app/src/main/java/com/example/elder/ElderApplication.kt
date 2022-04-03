@@ -5,7 +5,7 @@ import com.example.elder.data.students.StudentRepository
 import com.example.elder.data.students.StudentRoomDatabase
 
 class ElderApplication : Application() {
-    val database by lazy { StudentRoomDatabase.getDatabase(this) }
+    private val database by lazy { StudentRoomDatabase.getDatabase(this) }
     val repository by lazy { StudentRepository(database.studentDao()) }
 }
 

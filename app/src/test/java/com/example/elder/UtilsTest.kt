@@ -1,6 +1,5 @@
 package com.example.elder
 
-import android.util.Log
 import com.example.elder.domain.convertFullNameListToSurnameList
 import org.junit.Test
 

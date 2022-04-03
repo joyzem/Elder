@@ -1,11 +1,8 @@
 package com.example.elder.ui.screens.parsing
 
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,7 +31,12 @@ fun AutoFillDialogScreen(
         startDestination = "alert"
     ) {
         composable("alert") {
-            AskToFillDialog(onDismissRequest, manageViewModel, navController, groupName)
+            AskToFillDialog(
+                onDismissRequest = onDismissRequest,
+                manageViewModel = manageViewModel,
+                navController = navController,
+                groupName = groupName
+            )
         }
         composable("parsing") {
             when (manageViewModel.parsingStatus) {
@@ -56,7 +58,7 @@ fun AutoFillDialogScreen(
                             manageViewModel.insertGroup(students)
                             onSuccessAdded()
                         },
-                        students = students.take(3)
+                        students = students.take(4)
                     )
                 }
                 is StudentsParsingStatus.Error -> {
@@ -75,6 +77,7 @@ fun AutoFillDialogScreen(
 
 @Composable
 private fun AskToFillDialog(
+    modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
     manageViewModel: ManageViewModel,
     navController: NavHostController,
@@ -85,7 +88,7 @@ private fun AskToFillDialog(
         onDismissRequest = onDismissRequest,
         text = {
             Text(
-                "Elder может попробовать заполнить список твоей группы " +
+                "Приложение может попробовать заполнить список твоей группы " +
                         "автоматически, взяв его из портфолио группы " +
                         "на сайте КубГАУ."
             )
@@ -105,7 +108,8 @@ private fun AskToFillDialog(
             TextButton(onClick = onDismissRequest) {
                 Text(text = "Заполнить самостоятельно")
             }
-        }
+        },
+        modifier = modifier
     )
 }
 
@@ -114,7 +118,7 @@ fun GroupLoadingScreen(modifier: Modifier = Modifier, onDismissRequest: () -> Un
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .heightIn(min = 200.dp, max = 300.dp)
         ) {
@@ -132,6 +136,7 @@ fun GroupLoadingScreen(modifier: Modifier = Modifier, onDismissRequest: () -> Un
 
 @Composable
 fun GroupIsLoadedDialog(
+    modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
     onConfirmButton: () -> Unit,
     students: List<String>
@@ -154,27 +159,32 @@ fun GroupIsLoadedDialog(
                 items(students) { student ->
                     Text(text = student, modifier = Modifier.padding(vertical = 8.dp))
                 }
+                item {
+                    Text("...")
+                }
             }
-        }
+        },
+        modifier = modifier
     )
 }
 
 @Composable
 fun ErrorDialog(
+    modifier: Modifier = Modifier,
     error: StudentsParsingStatus.Error,
     onDismissRequest: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .heightIn(min = 200.dp, max = 400.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(vertical = 16.dp)
+                modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.cloud_error),
@@ -186,7 +196,8 @@ fun ErrorDialog(
                 Text(
                     text = "Произошла ошибка\nКод ошибки: " +
                             if (error.error.containsKey("code"))
-                                "группа не найдена" else "${error.error}",
+                                "группа не найдена.\nПроверьте написание группы, чтобы между " +
+                                        "направлением и номером не было знаков" else "${error.error}",
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(16.dp))

@@ -31,7 +31,7 @@ val DarkThemeColors = darkColors(
 @Composable
 fun ElderTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
     val colors = if (!useDarkTheme) {
         LightThemeColors
