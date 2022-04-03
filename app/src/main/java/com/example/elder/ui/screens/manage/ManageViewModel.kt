@@ -10,11 +10,15 @@ import com.example.elder.data.students.Student
 import com.example.elder.data.students.StudentRepository
 import com.example.elder.domain.convertFullNameListToSurnameList
 import com.example.elder.ui.screens.parsing.StudentsParsingStatus
-import com.google.gson.Gson
 import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.lang.IllegalArgumentException
+import java.net.UnknownHostException
 
 class ManageViewModel(
     private val studentRepository: StudentRepository,
@@ -58,17 +62,27 @@ class ManageViewModel(
             parsingStatus = StudentsParsingStatus.Loading
             try {
                 val client = HttpClient()
-                val data =
-                    client.get<String>("http://students-kubsau.herokuapp.com/students?group=$groupName")
-                val jsonResult = Gson().fromJson(data, GetStudentsResult::class.java)
-                if (jsonResult.success) {
-                    parsingStatus =
-                        StudentsParsingStatus.Success(convertFullNameListToSurnameList(jsonResult.result))
+                val jsonResult: String =
+                    client.get("http://students-kubsau.herokuapp.com/students?group=$groupName")
+                val getStudentsResult: GetStudentsResult = Json.decodeFromString(jsonResult)
+                if (getStudentsResult.success) {
+                    setNewParsingStatus(
+                        StudentsParsingStatus.Success(
+                            convertFullNameListToSurnameList(getStudentsResult.result)
+                        )
+                    )
                 } else {
-                    parsingStatus = StudentsParsingStatus.Error(jsonResult.err)
+                    setNewParsingStatus(StudentsParsingStatus.Error(getStudentsResult.err))
                 }
+            } catch (e: UnknownHostException) {
+                setNewParsingStatus(
+                    StudentsParsingStatus.Error(
+                        mapOf("error" to "Отсутствует соединение с сервером")
+                    )
+                )
+
             } catch (e: Exception) {
-                parsingStatus = StudentsParsingStatus.Error(mapOf("error" to e.toString()))
+                setNewParsingStatus(StudentsParsingStatus.Error(mapOf("error" to e.toString())))
             }
         }
     }
@@ -91,11 +105,17 @@ class ManageViewModel(
             }
         }
     }
-
-    private data class GetStudentsResult(
-        val success: Boolean, val result: List<String>, val err: Map<String, String>
-    )
 }
+
+@Serializable
+data class GetStudentsResult(
+    @SerialName("success")
+    val success: Boolean,
+    @SerialName("result")
+    val result: List<String> = listOf(),
+    @SerialName("err")
+    val err: Map<String, String> = mapOf()
+)
 
 class ManageViewModelFactory(
     private val studentRepository: StudentRepository,

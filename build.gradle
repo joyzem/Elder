@@ -3,6 +3,10 @@ buildscript {
         compose_version = '1.1.1'
         room_version = '2.4.2'
         lifecycleVersion = '2.4.0'
+        kotlin_version = '1.6.10'
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
     }
     repositories {
         google()
@@ -12,14 +16,12 @@ buildscript {
 plugins {
     id 'com.android.application' version '7.1.2' apply false
     id 'com.android.library' version '7.1.2' apply false
-    id 'org.jetbrains.kotlin.android' version '1.6.10' apply false
-    id "org.jlleitschuh.gradle.ktlint" version "10.2.1"
+    id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
 
 ext {
     coroutines = '1.6.0'

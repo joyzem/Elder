@@ -1,8 +1,11 @@
 package com.example.elder.ui.screens.parsing
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -59,8 +62,11 @@ fun AutoFillDialogScreen(
                 is StudentsParsingStatus.Error -> {
                     ErrorDialog(
                         error = manageViewModel.parsingStatus as StudentsParsingStatus.Error,
-                        onDismissRequest
+                        onDismissRequest = onDismissRequest
                     )
+                }
+                is StudentsParsingStatus.Waiting -> {
+                    return@composable
                 }
             }
         }
@@ -163,7 +169,7 @@ fun ErrorDialog(
             shape = MaterialTheme.shapes.medium,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 200.dp, max = 300.dp)
+                .heightIn(min = 200.dp, max = 400.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -180,7 +186,7 @@ fun ErrorDialog(
                 Text(
                     text = "Произошла ошибка\nКод ошибки: " +
                             if (error.error.containsKey("code"))
-                                "группа не найдена" else "неизвестная ошибка",
+                                "группа не найдена" else "${error.error}",
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(16.dp))
