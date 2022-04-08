@@ -67,22 +67,19 @@ fun ReportBackLayer(
     onSelectModeChanged: (SelectMode) -> Unit
 ) {
     Surface(modifier = modifier) {
-        Column {
+        Column(Modifier.padding(horizontal = 4.dp)) {
             var showDialog by remember { mutableStateOf(false) }
             PickDateLabel(
-                modifier = Modifier.padding(2.dp),
                 onDateChange = reportViewModel::onDateChanged,
                 date = reportViewModel.date
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
             PickLessonLabel(
-                modifier = Modifier.padding(2.dp),
                 showDialog = showDialog,
                 lesson = reportViewModel.lesson,
                 onShowDialogButton = { showDialog = !showDialog },
                 onLessonChange = reportViewModel::onLessonChanged
             )
-            Spacer(modifier = Modifier.height(4.dp))
             SelectModeRadioGroup(
                 modifier = Modifier.fillMaxWidth(),
                 selectMode = selectMode,

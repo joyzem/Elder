@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.elder.R
 import com.example.elder.data.students.Student
+import com.example.elder.ui.components.ElderOutlinedButton
 import com.example.elder.ui.screens.parsing.AutoFillDialogScreen
 import com.example.elder.ui.screens.parsing.StudentsParsingStatus
 
@@ -28,7 +30,7 @@ fun ManageFrontLayer(
 ) {
     val students = manageViewModel.students
     val groupName = manageViewModel.groupName
-    var showStudentAddDialog by remember { mutableStateOf(false) }
+    var showStudentAddDialog by rememberSaveable { mutableStateOf(false) }
     Scaffold(modifier = modifier) {
         AddStudentDialog(
             shouldShow = showStudentAddDialog,
@@ -57,63 +59,78 @@ fun ManageFrontLayer(
 
 @Composable
 fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewModel) {
-    Row(modifier) {
-        var groupName by remember { mutableStateOf(manageViewModel.groupName ?: "") }
-        val context = LocalContext.current
-        var isInputIncorrect by remember { mutableStateOf(false) }
-        var ifShowAutoFillingDialog by remember { mutableStateOf(false) }
-        if (ifShowAutoFillingDialog) {
-            AutoFillDialogScreen(
-                groupName,
-                manageViewModel = manageViewModel,
-                onDismissRequest = {
-                    groupName = groupName.toUpperCase(Locale.current)
-                    manageViewModel.saveGroupName(
-                        groupName = groupName,
-                        context = context
-                    )
-                    ifShowAutoFillingDialog = false
-                    makeToast(context, "Номер группы сохранен")
-                    manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
+    var groupName by remember { mutableStateOf(manageViewModel.groupName ?: "") }
+    val context = LocalContext.current
+    var isInputIncorrect by rememberSaveable { mutableStateOf(false) }
+    var ifShowAutoFillingDialog by rememberSaveable { mutableStateOf(false) }
+    if (ifShowAutoFillingDialog) {
+        AutoFillDialogScreen(
+            groupName,
+            manageViewModel = manageViewModel,
+            onDismissRequest = {
+                ifShowAutoFillingDialog = false
+                manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
+            },
+            onSuccessAdded = {
+                makeToast(context, "Группа добавлена!")
+                ifShowAutoFillingDialog = false
+                manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
+                groupName = groupName.toUpperCase(Locale.current)
+                manageViewModel.saveGroupName(groupName = groupName, context)
+            }
+        )
+    }
+    Column(modifier = modifier) {
+        Row {
+            OutlinedTextField(
+                shape = CircleShape,
+                value = groupName,
+                onValueChange = {
+                    groupName = it
+                    isInputIncorrect = false
                 },
-                onSuccessAdded = {
-                    groupName = groupName.toUpperCase(Locale.current)
-                    manageViewModel.saveGroupName(
-                        groupName = groupName,
-                        context = context
-                    )
-                    makeToast(context, "Группа добавлена!")
-                    ifShowAutoFillingDialog = false
-                    manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
-                }
+                label = { Text(text = "Номер группы") },
+                modifier = Modifier.weight(1f),
+                isError = isInputIncorrect
+            )
+            IconButton(
+                onClick = {
+                    if (groupName.isEmpty()) {
+                        isInputIncorrect = true
+                    } else {
+                        groupName = groupName.toUpperCase(Locale.current)
+                        manageViewModel.saveGroupName(groupName, context)
+                        makeToast(context, "Сохранено!")
+                    }
+                },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.done),
+                    contentDescription = "Подтвердить"
+                )
+            }
+        }
+        if (isInputIncorrect) {
+            Text(
+                text = "Заполните поле",
+                color = MaterialTheme.colors.error,
+                style = MaterialTheme.typography.caption,
+                modifier = Modifier.padding(start = 16.dp)
             )
         }
-        OutlinedTextField(
-            shape = CircleShape,
-            value = groupName,
-            onValueChange = {
-                groupName = it
-                isInputIncorrect = false
-            },
-            label = { Text(text = "Номер группы") },
-            modifier = Modifier.weight(1f),
-            isError = isInputIncorrect
-        )
-        IconButton(
+        Spacer(modifier = Modifier.height(12.dp))
+        ElderOutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
             onClick = {
                 if (groupName.isEmpty()) {
                     isInputIncorrect = true
-                    makeToast(context, "Заполните поле")
                 } else {
                     ifShowAutoFillingDialog = true
                 }
-            },
-            modifier = Modifier.align(Alignment.CenterVertically)
+            }
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.done),
-                contentDescription = "Подтвердить"
-            )
+            Text(text = "Заполнить автоматически")
         }
     }
 }
@@ -144,11 +161,11 @@ fun AddStudentDialog(
 ) {
     if (shouldShow) {
         Dialog(onDismissRequest = onDismissRequest) {
-            var studentName by remember { mutableStateOf("") }
-            var isError by remember { mutableStateOf(false) }
+            var studentName by rememberSaveable { mutableStateOf("") }
+            var isError by rememberSaveable { mutableStateOf(false) }
             val context = LocalContext.current
             Surface(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colors.surface,
                 shape = MaterialTheme.shapes.medium
             ) {
@@ -168,7 +185,8 @@ fun AddStudentDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(
+                    ElderOutlinedButton(
+                        modifier = Modifier,
                         onClick = {
                             if (studentName == "") {
                                 isError = true
@@ -177,8 +195,7 @@ fun AddStudentDialog(
                                 makeToast(context, "$studentName добавлен(а)")
                                 studentName = ""
                             }
-                        },
-                        shape = CircleShape
+                        }
                     ) {
                         Text(text = "Добавить")
                     }

@@ -43,8 +43,7 @@ fun AutoFillDialogScreen(
                 is StudentsParsingStatus.Loading -> {
                     GroupLoadingScreen(
                         modifier = Modifier.padding(
-                            vertical = 56.dp,
-                            horizontal = 16.dp
+                            vertical = 56.dp
                         ),
                         onDismissRequest = onDismissRequest
                     )
@@ -53,6 +52,7 @@ fun AutoFillDialogScreen(
                     val students =
                         (manageViewModel.parsingStatus as StudentsParsingStatus.Success).result
                     GroupIsLoadedDialog(
+                        modifier = Modifier.padding(end = 16.dp, bottom = 8.dp),
                         onDismissRequest = onDismissRequest,
                         onConfirmButton = {
                             manageViewModel.insertGroup(students)
@@ -93,20 +93,25 @@ private fun AskToFillDialog(
                         "на сайте КубГАУ."
             )
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    manageViewModel.setNewParsingStatus(StudentsParsingStatus.Loading)
-                    navController.navigate("parsing")
-                    manageViewModel.parseGroupByInternet(groupName)
-                }
+        buttons = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 16.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(text = "Продолжить")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(text = "Заполнить самостоятельно")
+                TextButton(onClick = onDismissRequest) {
+                    Text(text = "Отменить", color = MaterialTheme.colors.error)
+                }
+                TextButton(
+                    onClick = {
+                        manageViewModel.setNewParsingStatus(StudentsParsingStatus.Loading)
+                        navController.navigate("parsing")
+                        manageViewModel.parseGroupByInternet(groupName)
+                    }
+                ) {
+                    Text(text = "Ок")
+                }
             }
         },
         modifier = modifier
@@ -117,10 +122,7 @@ private fun AskToFillDialog(
 fun GroupLoadingScreen(modifier: Modifier = Modifier, onDismissRequest: () -> Unit) {
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
-            shape = MaterialTheme.shapes.medium,
-            modifier = modifier
-                .fillMaxWidth()
-                .heightIn(min = 200.dp, max = 300.dp)
+            shape = MaterialTheme.shapes.medium
         ) {
             Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator()
@@ -144,14 +146,14 @@ fun GroupIsLoadedDialog(
     AlertDialog(
         title = { Text("Это ваши студенты?") },
         onDismissRequest = onDismissRequest,
-        dismissButton = {
-            TextButton(onClick = { onDismissRequest() }) {
-                Text("Нет, заполнить вручную")
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirmButton) {
-                Text("Да, мои")
+        buttons = {
+            Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { onDismissRequest() }) {
+                    Text("Нет, отменить", color = MaterialTheme.colors.error)
+                }
+                TextButton(onClick = onConfirmButton) {
+                    Text("Да")
+                }
             }
         },
         text = {
@@ -163,8 +165,7 @@ fun GroupIsLoadedDialog(
                     Text("...")
                 }
             }
-        },
-        modifier = modifier
+        }
     )
 }
 

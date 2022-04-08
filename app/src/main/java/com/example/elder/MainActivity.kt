@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(Intent.ACTION_SEND)
             .setType("text/plain")
             .putExtra(Intent.EXTRA_SUBJECT, report.subject)
-            .putExtra(Intent.EXTRA_TEXT, report.content)
+            .putExtra(Intent.EXTRA_TEXT, "${report.subject}\n${report.content}")
         if (packageManager.resolveActivity(intent, 0) != null) {
             startActivity(intent)
         }
@@ -110,7 +110,7 @@ fun ElderApp(
                 when (currentScreen) {
                     ElderScreen.Report -> {
                         ReportBackLayer(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
                             reportViewModel = reportViewModel,
                             selectMode = reportViewModel.selectMode,
                             onSelectModeChanged = reportViewModel::onSelectModeChanged
@@ -121,7 +121,7 @@ fun ElderApp(
                             manageViewModel = manageViewModel,
                             modifier = Modifier.padding(
                                 start = 16.dp,
-                                end = 8.dp,
+                                end = 16.dp,
                                 top = 8.dp,
                                 bottom = 16.dp
                             )
