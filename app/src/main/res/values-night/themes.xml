@@ -3,10 +3,10 @@
 
     <style name="Theme.Elder" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:statusBarColor">?attr/colorOnSurface</item>
-        <item name="colorPrimary">#FF698168</item>
+        <item name="colorPrimary">#FF93d961</item>
         <item name="colorPrimaryVariant">#000000</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#FFb8ccb5</item>
+        <item name="colorSecondary">#FF86d98d</item>
         <item name="colorOnSecondary">#FFFFFF</item>
         <item name="colorSurface">#FF1a1b1f</item>
         <item name="colorOnSurface">#212121</item>

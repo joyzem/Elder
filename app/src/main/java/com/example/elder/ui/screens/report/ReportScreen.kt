@@ -1,14 +1,19 @@
 package com.example.elder.ui.screens.report
 
 import android.app.DatePickerDialog
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,8 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.window.Dialog
 import com.example.elder.R
 import com.example.elder.domain.Lesson
@@ -40,21 +48,120 @@ fun ReportFrontLayer(
             ListHeader(
                 modifier = Modifier.padding(start = 16.dp),
                 reportHeader = reportViewModel.reportHeader,
-                onUnselectAllClicked = reportViewModel::checkAllStudents,
-                onSelectAllClicked = reportViewModel::checkAllStudents,
+                onSelectAllClicked = { bool ->
+                    reportViewModel.checkAllStudents(bool)
+                },
                 onSendClicked = onSendClicked
             )
             Divider(Modifier.height(1.dp))
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(items = students) { student ->
-                    CheckableStudentRow(
+                    StudentRow(
                         onStudentChecked = {
                             reportViewModel.onStudentChecked(student)
                         },
                         reportStudentUiState = student
                     )
+                    Divider()
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ListHeader(
+    modifier: Modifier = Modifier,
+    reportHeader: String,
+    onSelectAllClicked: (Boolean) -> Unit,
+    onSendClicked: () -> Unit
+) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(text = reportHeader)
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(onClick = { onSelectAllClicked(false) }) {
+            Icon(
+                painter = painterResource(id = R.drawable.uncheck_all),
+                contentDescription = "Unselect all"
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        IconButton(onClick = { onSelectAllClicked(true) }) {
+            Icon(
+                painter = painterResource(id = R.drawable.check_all),
+                contentDescription = "Select all"
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        IconButton(onClick = onSendClicked) {
+            Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send")
+        }
+    }
+}
+
+
+/**
+ * StudentRow is a view that shows student info and allows to change studentUiState
+ * @param onStudentChecked Actions when user clicks the row
+ * @param reportStudentUiState Contains data that is shown on screen
+ */
+@Composable
+private fun StudentRow(
+    onStudentChecked: (Boolean) -> Unit,
+    reportStudentUiState: ReportStudentUiState
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(
+                reportStudentUiState.checked,
+                onValueChange = { boolean ->
+                    onStudentChecked(boolean)
+                },
+                role = Role.Button
+            )
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AnimatedVisibility(visible = reportStudentUiState.checked) {
+                Checkbox(
+                    checked = reportStudentUiState.checked, onCheckedChange = null
+                )
+            }
+            AnimatedVisibility(visible = reportStudentUiState.checked) {
+                Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+            }
+            Text(reportStudentUiState.student.surname)
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = { onStudentChecked(!reportStudentUiState.checked) },
+                shape = CircleShape,
+                colors = if (reportStudentUiState.checked) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(
+                    backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                        .compositeOver(MaterialTheme.colors.surface),
+                    contentColor = MaterialTheme.colors.onSurface
+                ),
+                modifier = Modifier.animateContentSize()
+            ) {
+                Text(text = if (reportStudentUiState.checked) "Присутствует" else "Отсутствует")
+            }
+        }
+        AnimatedVisibility(visible = !reportStudentUiState.checked) {
+            Spacer(Modifier.height(8.dp))
+        }
+        AnimatedVisibility(visible = !reportStudentUiState.checked) {
+            OutlinedTextField(
+                value = reportStudentUiState.reasonOfMissing.value,
+                onValueChange = { reportStudentUiState.reasonOfMissing.value = it },
+                modifier = Modifier
+                    .height(IntrinsicSize.Min)
+                    .fillMaxWidth(),
+                label = { Text("Причина отсутствия (необязательно)") },
+                textStyle = TextStyle.Default.copy(fontSize = 18.sp),
+                singleLine = true
+            )
         }
     }
 }
@@ -69,12 +176,12 @@ fun ReportBackLayer(
     Surface(modifier = modifier) {
         Column(Modifier.padding(horizontal = 4.dp)) {
             var showDialog by remember { mutableStateOf(false) }
-            PickDateLabel(
+            PickDateCard(
                 onDateChange = reportViewModel::onDateChanged,
                 date = reportViewModel.date
             )
             Spacer(Modifier.height(12.dp))
-            PickLessonLabel(
+            PickLessonCard(
                 showDialog = showDialog,
                 lesson = reportViewModel.lesson,
                 onShowDialogButton = { showDialog = !showDialog },
@@ -90,31 +197,7 @@ fun ReportBackLayer(
 }
 
 @Composable
-private fun CheckableStudentRow(
-    onStudentChecked: () -> Unit,
-    reportStudentUiState: ReportStudentUiState
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(
-                reportStudentUiState.checked, onValueChange = {
-                    onStudentChecked()
-                },
-                role = Role.Checkbox
-            )
-            .padding(16.dp)
-    ) {
-        Checkbox(
-            checked = reportStudentUiState.checked, onCheckedChange = null
-        )
-        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-        Text(reportStudentUiState.student.surname)
-    }
-}
-
-@Composable
-private fun PickDateLabel(
+private fun PickDateCard(
     modifier: Modifier = Modifier,
     onDateChange: (Calendar) -> Unit,
     date: Calendar
@@ -162,7 +245,7 @@ private fun TextSpaceIconRow(
 }
 
 @Composable
-private fun PickLessonLabel(
+private fun PickLessonCard(
     modifier: Modifier = Modifier,
     showDialog: Boolean,
     lesson: Lesson,
@@ -192,7 +275,9 @@ private fun LessonDialog(
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             color = MaterialTheme.colors.surface,
             shape = RoundedCornerShape(8.dp)
         ) {
@@ -259,38 +344,6 @@ private fun TextRadioButton(
             )
             Spacer(Modifier.width(4.dp))
             Text(text = text, modifier = Modifier.align(Alignment.CenterVertically))
-        }
-    }
-}
-
-
-@Composable
-private fun ListHeader(
-    modifier: Modifier = Modifier,
-    reportHeader: String,
-    onUnselectAllClicked: (Boolean) -> Unit,
-    onSelectAllClicked: (Boolean) -> Unit,
-    onSendClicked: () -> Unit
-) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(text = reportHeader)
-        Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = { onUnselectAllClicked(false) }) {
-            Icon(
-                painter = painterResource(id = R.drawable.uncheck_all),
-                contentDescription = "Unselect all"
-            )
-        }
-        Spacer(Modifier.width(8.dp))
-        IconButton(onClick = { onSelectAllClicked(true) }) {
-            Icon(
-                painter = painterResource(id = R.drawable.check_all),
-                contentDescription = "Select all"
-            )
-        }
-        Spacer(Modifier.width(8.dp))
-        IconButton(onClick = onSendClicked) {
-            Icon(painter = painterResource(id = R.drawable.send), contentDescription = "Send")
         }
     }
 }
