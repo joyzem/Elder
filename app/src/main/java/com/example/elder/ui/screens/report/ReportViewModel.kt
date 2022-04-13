@@ -2,10 +2,12 @@ package com.example.elder.ui.screens.report
 
 import android.app.Application
 import androidx.compose.runtime.*
+import androidx.compose.ui.state.ToggleableState
 import androidx.lifecycle.*
 import com.example.elder.ElderApplication
 import com.example.elder.GROUP_NAME
 import com.example.elder.data.students.StudentRepository
+import com.example.elder.domain.FixedSumTwoValuesCounter
 import com.example.elder.domain.GroupReport
 import com.example.elder.domain.Lesson
 import com.example.elder.domain.getCurrentLesson
@@ -17,19 +19,22 @@ import java.util.*
 class ReportViewModel(application: Application, private val repository: StudentRepository) :
     AndroidViewModel(application) {
 
-    var students: MutableList<ReportStudentUiState> by mutableStateOf(
-        mutableStateListOf()
-    )
+    var students: MutableList<ReportStudentUiState> by mutableStateOf(mutableStateListOf())
         private set
     var selectMode: SelectMode by mutableStateOf(SelectMode.AttendingStudents)
         private set
     var date: Calendar by mutableStateOf(Calendar.getInstance())
         private set
-    var lesson by mutableStateOf(getCurrentLesson())
+    var lesson: Lesson by mutableStateOf(getCurrentLesson())
         private set
-    var reportHeader by mutableStateOf(
+    var reportHeader: String by mutableStateOf(
         if (selectMode == SelectMode.AttendingStudents) "Присутствующие" else "Отсутствующие"
     )
+        private set
+
+    private var studentsCounter: FixedSumTwoValuesCounter? = null
+
+    var toggleableState: ToggleableState by mutableStateOf(ToggleableState.Off)
         private set
 
     init {
@@ -38,13 +43,22 @@ class ReportViewModel(application: Application, private val repository: StudentR
                 students = incomingStudents.map { studentEntity ->
                     ReportStudentUiState(studentEntity)
                 }.toMutableStateList()
+                studentsCounter = FixedSumTwoValuesCounter(incomingStudents.size)
+                studentsCounter!!.setValuesByFirstValue(getAttendingStudentsAmount())
+                toggleableState = studentsCounter!!.getToggleableState()
             }
         }
     }
 
     fun onStudentChecked(reportStudentUiState: ReportStudentUiState) {
         val index = students.indexOf(reportStudentUiState)
-        students[index] = students[index].copy(checked = !reportStudentUiState.checked)
+        students[index] = students[index].copy(
+            checked = !reportStudentUiState.checked,
+            hasReason = mutableStateOf(false),
+            reasonOfMissing = mutableStateOf("")
+        )
+        studentsCounter?.increaseFirstOrSecondValue(isFirst = students[index].checked)
+        toggleableState = studentsCounter?.getToggleableState() ?: ToggleableState.On
     }
 
     fun onDateChanged(newDate: Calendar) {
@@ -65,12 +79,28 @@ class ReportViewModel(application: Application, private val repository: StudentR
         return createReport(requiredStudents, "$reportHeader:")
     }
 
-    fun checkAllStudents(checked: Boolean) {
+    fun onToggleableStateClicked() {
+        when (toggleableState) {
+            ToggleableState.On -> checkAllStudents(false)
+            ToggleableState.Indeterminate -> checkAllStudents(true)
+            ToggleableState.Off -> checkAllStudents(true)
+        }
+    }
+
+    private fun checkAllStudents(checked: Boolean) {
         viewModelScope.launch {
             for (i in 0 until students.size) {
                 students[i] = students[i].copy(checked = checked)
             }
         }
+        studentsCounter!!.setValuesByFirstValue(if (checked) students.size else 0)
+        toggleableState = studentsCounter!!.getToggleableState()
+    }
+
+    private fun getAttendingStudentsAmount(): Int {
+        var counter = 0
+        students.forEach { student -> if (student.checked) counter++ }
+        return counter
     }
 
     private fun getGroupName(): String? {
@@ -106,7 +136,8 @@ class ReportViewModel(application: Application, private val repository: StudentR
 
 enum class SelectMode {
     AttendingStudents,
-    MissingStudents
+    MissingStudents,
+    Both
 }
 
 class ReportViewModelFactory(

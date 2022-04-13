@@ -17,86 +17,33 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.elder.domain.ElderScreen
 import java.util.*
 
 @Composable
-fun ElderTabRow(
+fun ElderBottomBar(
     allScreens: List<ElderScreen>,
     onTabSelected: (ElderScreen) -> Unit,
     currentScreen: ElderScreen
 ) {
-    TopAppBar(
+    BottomNavigation(
         elevation = 2.dp,
         backgroundColor = MaterialTheme.colors.surface,
         contentColor = MaterialTheme.colors.onSurface
     ) {
-        Row(
-            Modifier
-                .selectableGroup()
-                .fillMaxWidth(),
-            Arrangement.Center
-        ) {
-            allScreens.forEach { screen ->
-                ElderTab(
-                    text = screen.title,
-                    icon = screen.icon,
-                    onSelected = {
-                        onTabSelected(screen)
-                    },
-                    selected = currentScreen == screen
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ElderTab(text: String, icon: ImageVector, onSelected: () -> Unit, selected: Boolean) {
-    val color = MaterialTheme.colors.onSurface
-    val durationMillis = if (selected) TabFadeInAnimationDuration else TabFadeOutAnimationDuration
-    val animSpec = remember {
-        tween<Color>(
-            durationMillis = durationMillis,
-            easing = LinearEasing,
-            delayMillis = TabFadeInAnimationDelay
-        )
-    }
-    val tabTintColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colors.primary else color.copy(alpha = InactiveTabOpacity),
-        animationSpec = animSpec
-    )
-    Row(
-        modifier = Modifier
-            .selectable(
-                selected = selected,
-                onClick = onSelected,
-                role = Role.Tab,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(
-                    bounded = false,
-                    radius = Dp.Unspecified,
-                    color = Color.Unspecified
-                )
+        allScreens.forEach { screen ->
+            BottomNavigationItem(
+                selected = currentScreen == screen,
+                onClick = { onTabSelected(screen) },
+                icon = { Icon(imageVector = screen.icon, contentDescription = null) },
+                label = { Text(screen.title.uppercase()) },
+                selectedContentColor = MaterialTheme.colors.primary,
+                unselectedContentColor = MaterialTheme.colors.onSurface,
+                alwaysShowLabel = true
             )
-            .fillMaxHeight()
-            .padding(16.dp)
-            .animateContentSize()
-            .height(TabHeight)
-            .clearAndSetSemantics { contentDescription = text }
-    ) {
-        Icon(imageVector = icon, contentDescription = text, tint = tabTintColor)
-        if (selected) {
-            Spacer(Modifier.width(12.dp))
-            Text(text.uppercase(Locale.getDefault()), color = tabTintColor)
         }
     }
 }
-
-private val TabHeight = 56.dp
-private const val InactiveTabOpacity = 0.60f
-private const val TabFadeInAnimationDuration = 150
-private const val TabFadeInAnimationDelay = 100
-private const val TabFadeOutAnimationDuration = 100

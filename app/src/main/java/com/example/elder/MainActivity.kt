@@ -18,7 +18,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.example.elder.domain.ElderScreen
 import com.example.elder.domain.GroupReport
-import com.example.elder.ui.components.ElderTabRow
+import com.example.elder.ui.components.ElderBottomBar
 import com.example.elder.ui.screens.manage.ManageBackLayer
 import com.example.elder.ui.screens.manage.ManageFrontLayer
 import com.example.elder.ui.screens.manage.ManageViewModel
@@ -95,70 +95,86 @@ fun ElderApp(
                 darkIcons = !isDarkTheme
             )
         }
-        BackdropScaffold(
-            scaffoldState = backdropScaffoldState,
-            appBar = {
-                ElderTabRow(
+
+        Scaffold(
+            bottomBar = {
+                ElderBottomBar(
                     ElderScreen.values().toList(),
                     currentScreen = currentScreen,
                     onTabSelected = {
                         currentScreen = it
                     }
                 )
-            },
-            backLayerContent = {
-                when (currentScreen) {
-                    ElderScreen.Report -> {
-                        ReportBackLayer(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
-                            reportViewModel = reportViewModel,
-                            selectMode = reportViewModel.selectMode,
-                            onSelectModeChanged = reportViewModel::onSelectModeChanged
-                        )
-                    }
-                    ElderScreen.Manage -> {
-                        ManageBackLayer(
-                            manageViewModel = manageViewModel,
-                            modifier = Modifier.padding(
-                                start = 16.dp,
-                                end = 16.dp,
-                                top = 8.dp,
-                                bottom = 16.dp
-                            )
-                        )
-                    }
-                }
-            },
-            frontLayerContent = {
-                when (currentScreen) {
-                    ElderScreen.Report -> {
-                        ReportFrontLayer(
-                            reportViewModel = reportViewModel,
-                            onSendClicked = { onSendReport(reportViewModel.getReport()) }
-                        )
-                    }
-                    ElderScreen.Manage -> {
-                        ManageFrontLayer(manageViewModel = manageViewModel)
-                    }
-                }
-            },
-            gesturesEnabled = true,
-            frontLayerElevation = 8.dp,
-            backLayerBackgroundColor = MaterialTheme.colors.surface,
-            modifier = Modifier.pointerInput(Unit) {
-                this.detectHorizontalDragGestures { change, dragAmount ->
-                    val offset = Offset(x = dragAmount, y = 0f)
-                    val newValue = Offset(offset.x.coerceIn(-200f, 200f), y = 0f)
-                    if (newValue.x >= 55) {
-                        currentScreen = ElderScreen.Report
-                        return@detectHorizontalDragGestures
-                    } else if (newValue.x <= -55){
-                        currentScreen = ElderScreen.Manage
-                        return@detectHorizontalDragGestures
-                    }
-                    change.consumePositionChange()
-                }
             }
-        )
+        ) { innerPadding ->
+            BackdropScaffold(
+                scaffoldState = backdropScaffoldState,
+                appBar = {
+                    when (currentScreen) {
+                        ElderScreen.Report -> {
+
+                        }
+                        ElderScreen.Manage -> {
+
+                        }
+                    }
+                },
+                backLayerContent = {
+                    when (currentScreen) {
+                        ElderScreen.Report -> {
+                            ReportBackLayer(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+                                reportViewModel = reportViewModel
+                            )
+                        }
+                        ElderScreen.Manage -> {
+                            ManageBackLayer(
+                                manageViewModel = manageViewModel,
+                                modifier = Modifier.padding(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = 8.dp,
+                                    bottom = 16.dp
+                                )
+                            )
+                        }
+                    }
+                },
+                persistentAppBar = false,
+                frontLayerContent = {
+                    when (currentScreen) {
+                        ElderScreen.Report -> {
+                            ReportFrontLayer(
+                                reportViewModel = reportViewModel,
+                                onSendClicked = { onSendReport(reportViewModel.getReport()) }
+                            )
+                        }
+                        ElderScreen.Manage -> {
+                            ManageFrontLayer(manageViewModel = manageViewModel)
+                        }
+                    }
+                },
+                gesturesEnabled = true,
+                frontLayerElevation = 8.dp,
+                backLayerBackgroundColor = MaterialTheme.colors.surface,
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .pointerInput(Unit) {
+                        this.detectHorizontalDragGestures { change, dragAmount ->
+                            val offset = Offset(x = dragAmount, y = 0f)
+                            val newValue = Offset(offset.x.coerceIn(-200f, 200f), y = 0f)
+                            if (newValue.x >= 55) {
+                                currentScreen = ElderScreen.Report
+                                return@detectHorizontalDragGestures
+                            } else if (newValue.x <= -55) {
+                                currentScreen = ElderScreen.Manage
+                                return@detectHorizontalDragGestures
+                            }
+                            change.consumePositionChange()
+                        }
+                    }
+            )
+
+        }
     }
 }
