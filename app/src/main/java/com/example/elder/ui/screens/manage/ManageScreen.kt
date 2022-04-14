@@ -2,63 +2,136 @@ package com.example.elder.ui.screens.manage
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.consumePositionChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.elder.R
 import com.example.elder.data.students.Student
+import com.example.elder.domain.SwipeDirection
 import com.example.elder.ui.components.ElderOutlinedButton
 import com.example.elder.ui.screens.parsing.AutoFillDialogScreen
 import com.example.elder.ui.screens.parsing.StudentsParsingStatus
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ManageScreen(
+    manageViewModel: ManageViewModel,
+    onSwipe: (SwipeDirection) -> Unit
+) {
+    val backdropScaffoldState =
+        rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
+    var showStudentAddDialog by rememberSaveable { mutableStateOf(false) }
+    if (showStudentAddDialog) {
+        AddStudentDialog(
+            onDismissRequest = { showStudentAddDialog = false },
+            onAddButtonClicked = manageViewModel::insertStudent
+        )
+    }
+    BackdropScaffold(
+        scaffoldState = backdropScaffoldState,
+        appBar = {
+            val scope = rememberCoroutineScope()
+            ManageTopAppBar(
+                manageViewModel = manageViewModel,
+                onMenuClicked = {
+                    scope.launch {
+                        backdropScaffoldState.reveal()
+                    }
+                },
+                onAddPersonClicked = { showStudentAddDialog = true }
+            )
+        },
+        backLayerContent = {
+            ManageBackLayer(
+                manageViewModel = manageViewModel,
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 16.dp
+                )
+            )
+        },
+        frontLayerContent = {
+            ManageFrontLayer(manageViewModel = manageViewModel)
+        },
+        persistentAppBar = false,
+        frontLayerElevation = 8.dp,
+        backLayerBackgroundColor = MaterialTheme.colors.surface,
+        gesturesEnabled = true,
+        modifier = Modifier.pointerInput(Unit) {
+            this.detectHorizontalDragGestures { change, dragAmount ->
+                val offset = Offset(x = dragAmount, y = 0f)
+                val newValue = Offset(offset.x.coerceIn(-200f, 200f), y = 0f)
+                if (newValue.x >= 55) {
+                    onSwipe(SwipeDirection.RIGHT)
+                    return@detectHorizontalDragGestures
+                } else if (newValue.x <= -55) {
+                    onSwipe(SwipeDirection.LEFT)
+                    return@detectHorizontalDragGestures
+                }
+                change.consumePositionChange()
+            }
+        }
+    )
+}
 
 @Composable
-fun ManageFrontLayer(
+private fun ManageFrontLayer(
     modifier: Modifier = Modifier,
     manageViewModel: ManageViewModel
 ) {
     val students = manageViewModel.students
-    var showStudentAddDialog by rememberSaveable { mutableStateOf(false) }
     Scaffold(modifier = modifier) {
-        AddStudentDialog(
-            shouldShow = showStudentAddDialog,
-            onDismissRequest = { showStudentAddDialog = false },
-            onAddButtonClicked = manageViewModel::insertStudent
-        )
-        Column {
-            LazyColumn {
-                items(students) { student ->
-                    ManageableStudentRow(
-                        modifier = Modifier.padding(start = 16.dp),
-                        student = student,
-                        onDeleteButtonClick = manageViewModel::deleteStudent
-                    )
-                }
+        if (students.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(
+                    text = "Нажмите, чтобы войти в режим добавления",
+                    Modifier.padding(32.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        LazyColumn {
+            items(students) { student ->
+                StudentRow(
+                    modifier = Modifier.padding(start = 16.dp),
+                    student = student,
+                    onDeleteButtonClick = manageViewModel::deleteStudent
+                )
             }
         }
     }
 }
 
 @Composable
-fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewModel) {
-    var groupName by remember { mutableStateOf(manageViewModel.groupName ?: "") }
+private fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewModel) {
+    var groupNumber by remember { mutableStateOf(manageViewModel.groupName ?: "") }
     val context = LocalContext.current
-    var isInputIncorrect by rememberSaveable { mutableStateOf(false) }
     var ifShowAutoFillingDialog by rememberSaveable { mutableStateOf(false) }
     if (ifShowAutoFillingDialog) {
         AutoFillDialogScreen(
-            groupName,
+            groupNumber,
             manageViewModel = manageViewModel,
             onDismissRequest = {
                 ifShowAutoFillingDialog = false
@@ -68,42 +141,31 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
                 makeToast(context, "Группа добавлена!")
                 ifShowAutoFillingDialog = false
                 manageViewModel.setNewParsingStatus(StudentsParsingStatus.Waiting)
-                groupName = groupName.toUpperCase(Locale.current)
-                manageViewModel.saveGroupName(groupName = groupName, context)
+                groupNumber = groupNumber.toUpperCase(Locale.current)
+                manageViewModel.saveGroupName(groupName = groupNumber, context)
             }
         )
     }
+    var isInputIncorrect by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
-        Row {
-            OutlinedTextField(
-                shape = MaterialTheme.shapes.small,
-                value = groupName,
-                onValueChange = {
-                    groupName = it
-                    isInputIncorrect = false
-                },
-                label = { Text(text = "Номер группы") },
-                modifier = Modifier.weight(1f),
-                isError = isInputIncorrect
-            )
-            IconButton(
-                onClick = {
-                    if (groupName.isEmpty()) {
-                        isInputIncorrect = true
-                    } else {
-                        groupName = groupName.toUpperCase(Locale.current)
-                        manageViewModel.saveGroupName(groupName, context)
-                        makeToast(context, "Сохранено!")
-                    }
-                },
-                modifier = Modifier.align(Alignment.CenterVertically)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.done),
-                    contentDescription = "Подтвердить"
-                )
-            }
-        }
+        GroupNumberInput(
+            groupNumber = groupNumber,
+            onGroupNumberChange = { number ->
+                groupNumber = number
+                isInputIncorrect = false
+            },
+            onSubmitIconClick = {
+                if (groupNumber.isEmpty()) {
+                    isInputIncorrect = true
+                } else {
+                    groupNumber = groupNumber.toUpperCase(Locale.current)
+                    manageViewModel.saveGroupName(groupNumber, context)
+                    makeToast(context, "Сохранено!")
+                }
+
+            },
+            isInputIncorrect
+        )
         if (isInputIncorrect) {
             Text(
                 text = "Заполните поле",
@@ -116,7 +178,7 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
         ElderOutlinedButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-                if (groupName.isEmpty()) {
+                if (groupNumber.isEmpty()) {
                     isInputIncorrect = true
                 } else {
                     ifShowAutoFillingDialog = true
@@ -128,70 +190,78 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
     }
 }
 
-//@Composable
-//private fun ManageListHeader(
-//    modifier: Modifier = Modifier,
-//    groupName: String?,
-//    onAddPersonClicked: () -> Unit
-//) {
-//    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-//        Text(text = groupName ?: "Задайте номер группы")
-//        Spacer(modifier = Modifier.weight(1f))
-//        IconButton(onClick = onAddPersonClicked) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.person_add),
-//                contentDescription = "Добавить студента"
-//            )
-//        }
-//    }
-//}
+@Composable
+private fun GroupNumberInput(
+    groupNumber: String,
+    onGroupNumberChange: (String) -> Unit,
+    onSubmitIconClick: () -> Unit,
+    isInputIncorrect: Boolean
+) {
+    Row {
+        OutlinedTextField(
+            value = groupNumber,
+            onValueChange = onGroupNumberChange,
+            label = { Text(text = "Номер группы") },
+            placeholder = { Text(text = "ПИ2002") },
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+            isError = isInputIncorrect
+        )
+        IconButton(
+            onClick = onSubmitIconClick,
+            modifier = Modifier.align(Alignment.CenterVertically)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.done),
+                contentDescription = "Подтвердить"
+            )
+        }
+    }
+}
 
 @Composable
-fun AddStudentDialog(
-    shouldShow: Boolean,
+private fun AddStudentDialog(
     onDismissRequest: () -> Unit,
     onAddButtonClicked: (String) -> Unit
 ) {
-    if (shouldShow) {
-        Dialog(onDismissRequest = onDismissRequest) {
-            var studentName by rememberSaveable { mutableStateOf("") }
-            var isError by rememberSaveable { mutableStateOf(false) }
-            val context = LocalContext.current
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colors.surface,
-                shape = MaterialTheme.shapes.medium
+    Dialog(onDismissRequest = onDismissRequest) {
+        var studentName by rememberSaveable { mutableStateOf("") }
+        var isError by rememberSaveable { mutableStateOf(false) }
+        val context = LocalContext.current
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.surface,
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    OutlinedTextField(
-                        shape = MaterialTheme.shapes.small,
-                        value = studentName,
-                        onValueChange = {
-                            studentName = it
-                            isError = false
-                        },
-                        label = { Text("Фамилия студента") },
-                        isError = isError,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ElderOutlinedButton(
-                        modifier = Modifier,
-                        onClick = {
-                            if (studentName == "") {
-                                isError = true
-                            } else {
-                                onAddButtonClicked(studentName)
-                                makeToast(context, "$studentName добавлен(а)")
-                                studentName = ""
-                            }
+                OutlinedTextField(
+                    shape = MaterialTheme.shapes.small,
+                    value = studentName,
+                    onValueChange = {
+                        studentName = it
+                        isError = false
+                    },
+                    label = { Text("Фамилия студента") },
+                    isError = isError,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                ElderOutlinedButton(
+                    modifier = Modifier,
+                    onClick = {
+                        if (studentName.isEmpty()) {
+                            isError = true
+                        } else {
+                            onAddButtonClicked(studentName)
+                            makeToast(context, "$studentName добавлен(а)")
+                            studentName = ""
                         }
-                    ) {
-                        Text(text = "Добавить")
                     }
+                ) {
+                    Text(text = "Добавить")
                 }
             }
         }
@@ -204,7 +274,7 @@ private fun makeToast(context: Context, message: String) {
 
 
 @Composable
-fun ManageableStudentRow(
+private fun StudentRow(
     modifier: Modifier = Modifier,
     student: Student,
     onDeleteButtonClick: (Student) -> Unit

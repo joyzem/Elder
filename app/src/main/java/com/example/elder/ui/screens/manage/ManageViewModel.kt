@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.elder.GROUP_NAME
 import com.example.elder.data.students.Student
 import com.example.elder.data.students.StudentRepository
+import com.example.elder.domain.NetworkClient
 import com.example.elder.domain.convertFullNameListToSurnameList
 import com.example.elder.ui.screens.parsing.StudentsParsingStatus
 import io.ktor.client.*
@@ -38,8 +39,8 @@ class ManageViewModel(
 
     init {
         viewModelScope.launch {
-            studentRepository.fetchAllStudents().collect { incomingStudents ->
-                students = incomingStudents.toMutableStateList()
+            studentRepository.fetchAllStudents().collect { fetchedStudents ->
+                students = fetchedStudents.toMutableStateList()
             }
         }
     }
@@ -59,11 +60,11 @@ class ManageViewModel(
 
     fun parseGroupByInternet(groupName: String) {
         viewModelScope.launch {
-            parsingStatus = StudentsParsingStatus.Loading
+            setNewParsingStatus(StudentsParsingStatus.Loading)
             try {
-                val client = HttpClient()
+                val client = NetworkClient()
                 val jsonResult: String =
-                    client.get("http://students-kubsau.herokuapp.com/students?group=$groupName")
+                    client.getJson("http://students-kubsau.herokuapp.com/students?group=$groupName")
                 val getStudentsResult: GetStudentsResult = Json.decodeFromString(jsonResult)
                 if (getStudentsResult.success) {
                     setNewParsingStatus(

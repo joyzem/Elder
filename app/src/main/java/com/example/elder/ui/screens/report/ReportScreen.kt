@@ -8,7 +8,6 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,114 +24,112 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import com.example.elder.R
-import com.example.elder.domain.ElderScreen
+import com.example.elder.domain.GroupReport
 import com.example.elder.domain.Lesson
+import com.example.elder.domain.SwipeDirection
 import com.example.elder.ui.components.ClickableCard
 import com.example.elder.ui.components.ElderOutlinedButton
-import com.example.elder.ui.screens.manage.ManageBackLayer
-import com.example.elder.ui.screens.manage.ManageFrontLayer
-import com.example.elder.ui.screens.manage.ManageTopAppBar
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.*
 
-//@OptIn(ExperimentalMaterialApi::class)
-//@Composable
-//fun ReportScreen(
-//    reportViewModel: ReportViewModel
-//) {
-//
-//    BackdropScaffold(
-//        scaffoldState = backdropScaffoldState,
-//        appBar = {
-//            ReportTopAppBar(
-//                reportViewModel,
-//                onSendClicked = {
-//                    showSendDialog = true
-//                },
-//                onMenuClicked = {
-//                    scope.launch {
-//                        backdropScaffoldState.reveal()
-//                    }
-//                }
-//            )
-//        },
-//        backLayerContent = {
-//            when (currentScreen) {
-//                ElderScreen.Report -> {
-//                    val groupName = manageViewModel.groupName ?: "Название группы"
-//                    ReportBackLayer(
-//                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
-//                        reportViewModel = reportViewModel,
-//                        onSendClicked = { showSendDialog = true },
-//                        groupName = groupName
-//                    )
-//                }
-//                ElderScreen.Manage -> {
-//                    ManageBackLayer(
-//                        manageViewModel = manageViewModel,
-//                        modifier = Modifier.padding(
-//                            start = 16.dp,
-//                            end = 16.dp,
-//                            top = 8.dp,
-//                            bottom = 16.dp
-//                        )
-//                    )
-//                }
-//            }
-//        },
-//        persistentAppBar = false,
-//        frontLayerContent = {
-//            when (currentScreen) {
-//                ElderScreen.Report -> {
-//                    ReportFrontLayer(
-//                        reportViewModel = reportViewModel
-//                    )
-//                }
-//                ElderScreen.Manage -> {
-//                    ManageFrontLayer(manageViewModel = manageViewModel)
-//                }
-//            }
-//        },
-//        gesturesEnabled = true,
-//        frontLayerElevation = 8.dp,
-//        backLayerBackgroundColor = MaterialTheme.colors.surface,
-//        modifier = Modifier
-//            .padding(innerPadding)
-//            .pointerInput(Unit) {
-//                this.detectHorizontalDragGestures { change, dragAmount ->
-//                    val offset = Offset(x = dragAmount, y = 0f)
-//                    val newValue = Offset(offset.x.coerceIn(-200f, 200f), y = 0f)
-//                    if (newValue.x >= 55) {
-//                        currentScreen = ElderScreen.Report
-//                        return@detectHorizontalDragGestures
-//                    } else if (newValue.x <= -55) {
-//                        currentScreen = ElderScreen.Manage
-//                        return@detectHorizontalDragGestures
-//                    }
-//                    change.consumePositionChange()
-//                }
-//            }
-//    )
-//}
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ReportScreen(
+    reportViewModel: ReportViewModel,
+    groupName: String,
+    onSendReport: (GroupReport) -> Unit,
+    onSwipe: (SwipeDirection) -> Unit
+) {
+    val backdropScaffoldState =
+        rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
+    var showSendDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    if (showSendDialog) {
+        SendDialog(
+            reportViewModel = reportViewModel,
+            onDismissRequest = { showSendDialog = false },
+            onSendReport = onSendReport
+        )
+    }
+    val scope = rememberCoroutineScope()
+    BackdropScaffold(
+        scaffoldState = backdropScaffoldState,
+        appBar = {
+            ReportTopAppBar(
+                reportViewModel,
+                onSendClicked = {
+                    showSendDialog = true
+                },
+                onMenuClicked = {
+                    scope.launch {
+                        backdropScaffoldState.reveal()
+                    }
+                }
+            )
+        },
+        backLayerContent = {
+            ReportBackLayer(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+                reportViewModel = reportViewModel,
+                onSendClicked = { showSendDialog = true },
+                groupName = groupName
+            )
+        },
+        persistentAppBar = false,
+        frontLayerContent = {
+            ReportFrontLayer(
+                reportViewModel = reportViewModel
+            )
+        },
+        gesturesEnabled = true,
+        frontLayerElevation = 8.dp,
+        backLayerBackgroundColor = MaterialTheme.colors.surface,
+        modifier = Modifier.pointerInput(Unit) {
+            this.detectHorizontalDragGestures { change, dragAmount ->
+                val offset = Offset(x = dragAmount, y = 0f)
+                val newValue = Offset(offset.x.coerceIn(-200f, 200f), y = 0f)
+                if (newValue.x >= 55) {
+                    onSwipe(SwipeDirection.RIGHT)
+                    return@detectHorizontalDragGestures
+                } else if (newValue.x <= -55) {
+                    onSwipe(SwipeDirection.LEFT)
+                    return@detectHorizontalDragGestures
+                }
+                change.consumePositionChange()
+            }
+        }
+    )
+}
 
 @Composable
-fun ReportFrontLayer(
+private fun ReportFrontLayer(
     modifier: Modifier = Modifier,
     reportViewModel: ReportViewModel
 ) {
     val students = reportViewModel.students
     Scaffold(modifier = modifier) {
+        if (students.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                Text(
+                    text = "Перейдите в раздел \"Группа\", чтобы заполнить список",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(32.dp)
+                )
+            }
+        }
         LazyColumn {
             items(items = students) { student ->
                 StudentRow(
@@ -147,11 +144,6 @@ fun ReportFrontLayer(
     }
 }
 
-/**
- * StudentRow is a view that shows student info and allows to change studentUiState
- * @param onStudentChecked Actions when user clicks the row
- * @param reportStudentUiState Contains data that is shown on screen
- */
 @Composable
 private fun StudentRow(
     onStudentChecked: (Boolean) -> Unit,
@@ -224,7 +216,7 @@ private fun StudentRow(
 }
 
 @Composable
-fun ReportBackLayer(
+private fun ReportBackLayer(
     modifier: Modifier = Modifier,
     reportViewModel: ReportViewModel,
     groupName: String,
@@ -370,6 +362,55 @@ private fun LessonDialog(
                         fontSize = 20.sp
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SendDialog(
+    reportViewModel: ReportViewModel,
+    onDismissRequest: () -> Unit,
+    onSendReport: (GroupReport) -> Unit
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+            Column {
+                Text(text = "Выберите фильтр", Modifier.padding(16.dp))
+                Divider(Modifier.height(1.dp))
+                Text(
+                    text = "Присутствующие",
+                    modifier = Modifier
+                        .clickable {
+                            reportViewModel.onSelectModeChanged(SelectMode.AttendingStudents)
+                            onSendReport(reportViewModel.getReport())
+                            onDismissRequest()
+                        }
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+                Text(
+                    text = "Отсутствующие",
+                    modifier = Modifier
+                        .clickable {
+                            reportViewModel.onSelectModeChanged(SelectMode.MissingStudents)
+                            onSendReport(reportViewModel.getReport())
+                            onDismissRequest()
+                        }
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+                Text(
+                    text = "Все",
+                    modifier = Modifier
+                        .clickable {
+                            reportViewModel.onSelectModeChanged(SelectMode.Both)
+                            onSendReport(reportViewModel.getReport())
+                            onDismissRequest()
+                        }
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
             }
         }
     }
