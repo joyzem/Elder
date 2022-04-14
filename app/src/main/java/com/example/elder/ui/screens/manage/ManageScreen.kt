@@ -6,7 +6,10 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -15,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
@@ -162,9 +166,8 @@ private fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: Mana
                     manageViewModel.saveGroupName(groupNumber, context)
                     makeToast(context, "Сохранено!")
                 }
-
             },
-            isInputIncorrect
+            isInputIncorrect = isInputIncorrect
         )
         if (isInputIncorrect) {
             Text(
@@ -175,9 +178,11 @@ private fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: Mana
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
+        val focusManager = LocalFocusManager.current
         ElderOutlinedButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
+                focusManager.clearFocus()
                 if (groupNumber.isEmpty()) {
                     isInputIncorrect = true
                 } else {
@@ -185,7 +190,11 @@ private fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: Mana
                 }
             }
         ) {
-            Text(text = "Заполнить автоматически")
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Outlined.Error, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Заполнить автоматически")
+            }
         }
     }
 }
@@ -198,12 +207,17 @@ private fun GroupNumberInput(
     isInputIncorrect: Boolean
 ) {
     Row {
+        val focusManager = LocalFocusManager.current
         OutlinedTextField(
             value = groupNumber,
             onValueChange = onGroupNumberChange,
             label = { Text(text = "Номер группы") },
             placeholder = { Text(text = "ПИ2002") },
             singleLine = true,
+            keyboardActions = KeyboardActions(onDone = {
+                focusManager.clearFocus()
+                onSubmitIconClick()
+            }),
             modifier = Modifier.weight(1f),
             isError = isInputIncorrect
         )
@@ -237,6 +251,7 @@ private fun AddStudentDialog(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val focusManager = LocalFocusManager.current
                 OutlinedTextField(
                     shape = MaterialTheme.shapes.small,
                     value = studentName,
@@ -246,6 +261,12 @@ private fun AddStudentDialog(
                     },
                     label = { Text("Фамилия студента") },
                     isError = isError,
+                    singleLine = true,
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                        }
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -258,6 +279,7 @@ private fun AddStudentDialog(
                             onAddButtonClicked(studentName)
                             makeToast(context, "$studentName добавлен(а)")
                             studentName = ""
+                            focusManager.clearFocus()
                         }
                     }
                 ) {

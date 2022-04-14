@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
@@ -165,19 +167,7 @@ private fun StudentRow(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 4.dp)
         ) {
-            AnimatedVisibility(
-                visible = reportStudentUiState.checked
-            ) {
-                Checkbox(
-                    checked = reportStudentUiState.checked, onCheckedChange = null,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colors.primary
-                    )
-                )
-            }
-            AnimatedVisibility(visible = reportStudentUiState.checked) {
-                Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-            }
+            AnimatedVisibilityCheckbox(reportStudentUiState.checked)
             Text(reportStudentUiState.student.surname)
             Spacer(modifier = Modifier.weight(1f))
             Button(
@@ -193,7 +183,6 @@ private fun StudentRow(
                 Text(text = if (reportStudentUiState.checked) "Присутствует" else "Отсутствует")
             }
         }
-
         AnimatedVisibility(visible = !reportStudentUiState.hasReason.value && !reportStudentUiState.checked) {
             TextButton(onClick = { reportStudentUiState.hasReason.value = true }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
@@ -201,6 +190,7 @@ private fun StudentRow(
             }
         }
         AnimatedVisibility(visible = reportStudentUiState.hasReason.value && !reportStudentUiState.checked) {
+            val focusManager = LocalFocusManager.current
             OutlinedTextField(
                 value = reportStudentUiState.reasonOfMissing.value,
                 onValueChange = { reportStudentUiState.reasonOfMissing.value = it },
@@ -209,9 +199,29 @@ private fun StudentRow(
                     .fillMaxWidth(),
                 label = { Text("Причина отсутствия (необязательно)") },
                 textStyle = TextStyle.Default.copy(fontSize = 18.sp),
-                singleLine = true
+                singleLine = true,
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                )
             )
         }
+    }
+}
+
+@Composable
+private fun RowScope.AnimatedVisibilityCheckbox(visible: Boolean) {
+    AnimatedVisibility(
+        visible = visible
+    ) {
+        Checkbox(
+            checked = visible, onCheckedChange = null,
+            colors = CheckboxDefaults.colors(
+                checkedColor = MaterialTheme.colors.primary
+            )
+        )
+    }
+    AnimatedVisibility(visible = visible) {
+        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
     }
 }
 

@@ -84,7 +84,11 @@ class ReportViewModel(application: Application, private val repository: StudentR
     private fun checkAllStudents(checked: Boolean) {
         viewModelScope.launch {
             for (i in 0 until students.size) {
-                students[i] = students[i].copy(checked = checked)
+                students[i] = students[i].copy(
+                    checked = checked,
+                    hasReason = mutableStateOf(false),
+                    reasonOfMissing = mutableStateOf("")
+                )
             }
         }
         studentsCounter!!.setValuesByFirstValue(if (checked) students.size else 0)
