@@ -100,8 +100,13 @@ private fun AskToFillDialog(
                     .padding(end = 16.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismissRequest) {
-                    Text(text = "Отменить", color = MaterialTheme.colors.error)
+                TextButton(
+                    onClick = onDismissRequest,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colors.error
+                    )
+                ) {
+                    Text(text = "Отменить")
                 }
                 TextButton(
                     onClick = {
@@ -148,8 +153,12 @@ fun GroupIsLoadedDialog(
         onDismissRequest = onDismissRequest,
         buttons = {
             Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = { onDismissRequest() }) {
-                    Text("Нет, отменить", color = MaterialTheme.colors.error)
+                TextButton(
+                    onClick = { onDismissRequest() }, colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colors.error
+                    )
+                ) {
+                    Text("Нет, отменить")
                 }
                 TextButton(onClick = onConfirmButton) {
                     Text("Да")

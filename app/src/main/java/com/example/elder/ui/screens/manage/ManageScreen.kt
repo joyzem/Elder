@@ -29,7 +29,6 @@ fun ManageFrontLayer(
     manageViewModel: ManageViewModel
 ) {
     val students = manageViewModel.students
-    val groupName = manageViewModel.groupName
     var showStudentAddDialog by rememberSaveable { mutableStateOf(false) }
     Scaffold(modifier = modifier) {
         AddStudentDialog(
@@ -38,12 +37,6 @@ fun ManageFrontLayer(
             onAddButtonClicked = manageViewModel::insertStudent
         )
         Column {
-            ManageListHeader(
-                modifier = Modifier.padding(start = 16.dp, end = 10.dp),
-                groupName,
-                onAddPersonClicked = { showStudentAddDialog = true }
-            )
-            Divider(Modifier.height(1.dp))
             LazyColumn {
                 items(students) { student ->
                     ManageableStudentRow(
@@ -83,7 +76,7 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
     Column(modifier = modifier) {
         Row {
             OutlinedTextField(
-                shape = CircleShape,
+                shape = MaterialTheme.shapes.small,
                 value = groupName,
                 onValueChange = {
                     groupName = it
@@ -135,23 +128,23 @@ fun ManageBackLayer(modifier: Modifier = Modifier, manageViewModel: ManageViewMo
     }
 }
 
-@Composable
-private fun ManageListHeader(
-    modifier: Modifier = Modifier,
-    groupName: String?,
-    onAddPersonClicked: () -> Unit
-) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        Text(text = groupName ?: "Задайте номер группы")
-        Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = onAddPersonClicked) {
-            Icon(
-                painter = painterResource(id = R.drawable.person_add),
-                contentDescription = "Добавить студента"
-            )
-        }
-    }
-}
+//@Composable
+//private fun ManageListHeader(
+//    modifier: Modifier = Modifier,
+//    groupName: String?,
+//    onAddPersonClicked: () -> Unit
+//) {
+//    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+//        Text(text = groupName ?: "Задайте номер группы")
+//        Spacer(modifier = Modifier.weight(1f))
+//        IconButton(onClick = onAddPersonClicked) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.person_add),
+//                contentDescription = "Добавить студента"
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun AddStudentDialog(
@@ -174,7 +167,7 @@ fun AddStudentDialog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     OutlinedTextField(
-                        shape = CircleShape,
+                        shape = MaterialTheme.shapes.small,
                         value = studentName,
                         onValueChange = {
                             studentName = it

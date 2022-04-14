@@ -27,10 +27,6 @@ class ReportViewModel(application: Application, private val repository: StudentR
         private set
     var lesson: Lesson by mutableStateOf(getCurrentLesson())
         private set
-    var reportHeader: String by mutableStateOf(
-        if (selectMode == SelectMode.AttendingStudents) "Присутствующие" else "Отсутствующие"
-    )
-        private set
 
     private var studentsCounter: FixedSumTwoValuesCounter? = null
 
@@ -71,12 +67,10 @@ class ReportViewModel(application: Application, private val repository: StudentR
 
     fun onSelectModeChanged(newMode: SelectMode) {
         selectMode = newMode
-        updateReportHeader()
     }
 
     fun getReport(): GroupReport {
-        val requiredStudents = students.filter { student -> student.checked }
-        return createReport(requiredStudents, "$reportHeader:")
+        return createReport()
     }
 
     fun onToggleableStateClicked() {
@@ -112,25 +106,41 @@ class ReportViewModel(application: Application, private val repository: StudentR
         }
     }
 
-    private fun createReport(group: List<ReportStudentUiState>, prefix: String): GroupReport {
+    private fun createReport(): GroupReport {
+
+        val attemptingPart = students.filter { reportStudentUiState ->
+            reportStudentUiState.checked
+        }.joinToString(
+            separator = "\n",
+            prefix = "Присутствующие:\n",
+            transform = { reportStudentUiState ->
+                reportStudentUiState.student.surname
+            }
+        )
+        val missingPart = students.filter { reportStudentUiState ->
+            !reportStudentUiState.checked
+        }.joinToString(
+            separator = "\n",
+            prefix = "Отсутствующие:\n",
+            transform = { reportStudentUiState ->
+                val reason =
+                    if (reportStudentUiState.hasReason.value) " (${reportStudentUiState.reasonOfMissing.value})" else ""
+                "${reportStudentUiState.student.surname}$reason"
+            }
+        )
+        val content = when (selectMode) {
+            SelectMode.AttendingStudents -> attemptingPart
+            SelectMode.MissingStudents -> missingPart
+            SelectMode.Both -> attemptingPart + "\n\n" + missingPart
+        }
+
         val groupReport = GroupReport(
             subject = "${getGroupName() ?: "Группа: "}, ${
                 DateFormat.getDateInstance().format(date.time)
             }, ${lesson.value}",
-            content = group.joinToString(
-                separator = "\n",
-                prefix = "${prefix}\n",
-                transform = { studentUiState ->
-                    studentUiState.student.surname
-                }
-            )
+            content = content
         )
         return groupReport
-    }
-
-    private fun updateReportHeader() {
-        reportHeader =
-            if (selectMode == SelectMode.AttendingStudents) "Присутствующие" else "Отсутствующие"
     }
 }
 

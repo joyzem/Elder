@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -15,22 +16,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.consumePositionChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.example.elder.domain.ElderScreen
 import com.example.elder.domain.GroupReport
 import com.example.elder.ui.components.ElderBottomBar
-import com.example.elder.ui.screens.manage.ManageBackLayer
-import com.example.elder.ui.screens.manage.ManageFrontLayer
-import com.example.elder.ui.screens.manage.ManageViewModel
-import com.example.elder.ui.screens.manage.ManageViewModelFactory
-import com.example.elder.ui.screens.report.ReportBackLayer
-import com.example.elder.ui.screens.report.ReportFrontLayer
-import com.example.elder.ui.screens.report.ReportViewModel
-import com.example.elder.ui.screens.report.ReportViewModelFactory
+import com.example.elder.ui.screens.manage.*
+import com.example.elder.ui.screens.report.*
 import com.example.elder.ui.theme.DarkThemeColors
 import com.example.elder.ui.theme.ElderTheme
 import com.example.elder.ui.theme.LightThemeColors
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -83,6 +82,7 @@ fun ElderApp(
     onSendReport: (GroupReport) -> Unit
 ) {
     ElderTheme {
+
         var currentScreen by rememberSaveable { mutableStateOf(ElderScreen.Report) }
         val backdropScaffoldState =
             rememberBackdropScaffoldState(initialValue = BackdropValue.Revealed)
@@ -107,24 +107,56 @@ fun ElderApp(
                 )
             }
         ) { innerPadding ->
+            var showSendDialog by rememberSaveable {
+                mutableStateOf(false)
+            }
+            if (showSendDialog) {
+                SendDialog(
+                    reportViewModel = reportViewModel,
+                    onDismissRequest = { showSendDialog = false },
+                    onSendReport = onSendReport
+                )
+            }
+            val scope = rememberCoroutineScope()
             BackdropScaffold(
                 scaffoldState = backdropScaffoldState,
                 appBar = {
                     when (currentScreen) {
                         ElderScreen.Report -> {
-
+                            ReportTopAppBar(
+                                reportViewModel,
+                                onSendClicked = {
+                                    showSendDialog = true
+                                },
+                                onMenuClicked = {
+                                    scope.launch {
+                                        backdropScaffoldState.reveal()
+                                    }
+                                }
+                            )
                         }
                         ElderScreen.Manage -> {
-
+                            ManageTopAppBar(
+                                manageViewModel = manageViewModel,
+                                onMenuClicked = {
+                                    scope.launch {
+                                        backdropScaffoldState.reveal()
+                                    }
+                                },
+                                onAddPersonClicked = { }
+                            )
                         }
                     }
                 },
                 backLayerContent = {
                     when (currentScreen) {
                         ElderScreen.Report -> {
+                            val groupName = manageViewModel.groupName ?: "Название группы"
                             ReportBackLayer(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
-                                reportViewModel = reportViewModel
+                                reportViewModel = reportViewModel,
+                                onSendClicked = { showSendDialog = true },
+                                groupName = groupName
                             )
                         }
                         ElderScreen.Manage -> {
@@ -145,8 +177,7 @@ fun ElderApp(
                     when (currentScreen) {
                         ElderScreen.Report -> {
                             ReportFrontLayer(
-                                reportViewModel = reportViewModel,
-                                onSendClicked = { onSendReport(reportViewModel.getReport()) }
+                                reportViewModel = reportViewModel
                             )
                         }
                         ElderScreen.Manage -> {
@@ -175,6 +206,56 @@ fun ElderApp(
                     }
             )
 
+        }
+    }
+}
+
+@Composable
+fun SendDialog(
+    reportViewModel: ReportViewModel,
+    onDismissRequest: () -> Unit,
+    onSendReport: (GroupReport) -> Unit
+) {
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+            Column {
+                Text(text = "Выберите фильтр", Modifier.padding(16.dp))
+                Divider(Modifier.height(1.dp))
+                Text(
+                    text = "Присутствующие",
+                    modifier = Modifier
+                        .clickable {
+                            reportViewModel.onSelectModeChanged(SelectMode.AttendingStudents)
+                            onSendReport(reportViewModel.getReport())
+                            onDismissRequest()
+                        }
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+                Text(
+                    text = "Отсутствующие",
+                    modifier = Modifier
+                        .clickable {
+                            reportViewModel.onSelectModeChanged(SelectMode.MissingStudents)
+                            onSendReport(reportViewModel.getReport())
+                            onDismissRequest()
+                        }
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+                Text(
+                    text = "Все",
+                    modifier = Modifier
+                        .clickable {
+                            reportViewModel.onSelectModeChanged(SelectMode.Both)
+                            onSendReport(reportViewModel.getReport())
+                            onDismissRequest()
+                        }
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+            }
         }
     }
 }
