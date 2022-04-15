@@ -6,9 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -99,7 +101,11 @@ fun ElderApp(
                 )
             }
         ) { innerPadding ->
-            NavHost(navController, startDestination = ElderScreen.Report.name) {
+            NavHost(
+                navController,
+                startDestination = ElderScreen.Report.name,
+                modifier = Modifier.padding(innerPadding)
+            ) {
                 composable(ElderScreen.Report.name) {
                     ReportScreen(
                         reportViewModel = reportViewModel,
