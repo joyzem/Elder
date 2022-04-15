@@ -21,15 +21,12 @@ class ReportViewModel(application: Application, private val repository: StudentR
 
     var students: MutableList<ReportStudentUiState> by mutableStateOf(mutableStateListOf())
         private set
-    var selectMode: SelectMode by mutableStateOf(SelectMode.AttendingStudents)
-        private set
+    private var selectMode: SelectMode by mutableStateOf(SelectMode.AttendingStudents)
     var date: Calendar by mutableStateOf(Calendar.getInstance())
         private set
     var lesson: Lesson by mutableStateOf(getCurrentLesson())
         private set
-
     private var studentsCounter: FixedSumTwoValuesCounter? = null
-
     var toggleableState: ToggleableState by mutableStateOf(ToggleableState.Off)
         private set
 
@@ -70,7 +67,42 @@ class ReportViewModel(application: Application, private val repository: StudentR
     }
 
     fun getReport(): GroupReport {
-        return createReport()
+        val attemptingPart = students.filter { reportStudentUiState ->
+            reportStudentUiState.checked
+        }.joinToString(
+            separator = "\n",
+            prefix = "Присутствующие:\n",
+            transform = { reportStudentUiState ->
+                reportStudentUiState.student.surname
+            }
+        )
+        val missingPart = students.filter { reportStudentUiState ->
+            !reportStudentUiState.checked
+        }.joinToString(
+            separator = "\n",
+            prefix = "Отсутствующие:\n",
+            transform = { reportStudentUiState ->
+                var reason = ""
+                reportStudentUiState.run {
+                    if (hasReason.value && reasonOfMissing.value.isNotEmpty()) {
+                        reason = " (${reportStudentUiState.reasonOfMissing.value})"
+                    }
+                }
+                return@joinToString "${reportStudentUiState.student.surname}$reason"
+            }
+        )
+
+        val content = when (selectMode) {
+            SelectMode.AttendingStudents -> attemptingPart
+            SelectMode.MissingStudents -> missingPart
+            SelectMode.Both -> attemptingPart + "\n\n" + missingPart
+        }
+        return GroupReport(
+            subject = "${getGroupName() ?: "Группа: "}, ${
+                DateFormat.getDateInstance().format(date.time)
+            }, ${lesson.value}",
+            content = content
+        )
     }
 
     fun onToggleableStateClicked() {
@@ -108,47 +140,6 @@ class ReportViewModel(application: Application, private val repository: StudentR
         } catch (e: Exception) {
             null
         }
-    }
-
-    private fun createReport(): GroupReport {
-
-        val attemptingPart = students.filter { reportStudentUiState ->
-            reportStudentUiState.checked
-        }.joinToString(
-            separator = "\n",
-            prefix = "Присутствующие:\n",
-            transform = { reportStudentUiState ->
-                reportStudentUiState.student.surname
-            }
-        )
-        val missingPart = students.filter { reportStudentUiState ->
-            !reportStudentUiState.checked
-        }.joinToString(
-            separator = "\n",
-            prefix = "Отсутствующие:\n",
-            transform = { reportStudentUiState ->
-                var reason = ""
-                reportStudentUiState.run {
-                    if (hasReason.value && reasonOfMissing.value.isNotEmpty()) {
-                        reason = " (${reportStudentUiState.reasonOfMissing.value})"
-                    }
-                }
-                return@joinToString "${reportStudentUiState.student.surname}$reason"
-            }
-        )
-
-        val content = when (selectMode) {
-            SelectMode.AttendingStudents -> attemptingPart
-            SelectMode.MissingStudents -> missingPart
-            SelectMode.Both -> attemptingPart + "\n\n" + missingPart
-        }
-        val groupReport = GroupReport(
-            subject = "${getGroupName() ?: "Группа: "}, ${
-                DateFormat.getDateInstance().format(date.time)
-            }, ${lesson.value}",
-            content = content
-        )
-        return groupReport
     }
 }
 

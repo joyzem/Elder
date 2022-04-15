@@ -11,8 +11,6 @@ import com.example.elder.data.students.StudentRepository
 import com.example.elder.domain.NetworkClient
 import com.example.elder.domain.convertFullNameListToSurnameList
 import com.example.elder.ui.screens.parsing.StudentsParsingStatus
-import io.ktor.client.*
-import io.ktor.client.request.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

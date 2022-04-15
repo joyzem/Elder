@@ -35,7 +35,7 @@ fun ElderOutlinedButton(
 @Composable
 fun PreviewElderOutlinedButton() {
     ElderTheme {
-        ElderOutlinedButton(onClick = { /*TODO*/ }) {
+        ElderOutlinedButton(onClick = {  }) {
             Text(text = "Hello, World!")
         }
     }

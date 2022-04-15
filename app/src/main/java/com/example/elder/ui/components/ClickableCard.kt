@@ -38,7 +38,7 @@ fun ClickableCard(
 @Composable
 private fun PreviewClickableCard() {
     ElderTheme {
-        ClickableCard(onClick = { /*TODO*/ }) {
+        ClickableCard(onClick = {  }) {
             Text(text = "Hello, World!", modifier = Modifier.padding(16.dp))
         }
     }

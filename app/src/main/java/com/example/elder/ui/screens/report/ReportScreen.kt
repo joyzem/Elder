@@ -7,7 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -133,12 +133,13 @@ private fun ReportFrontLayer(
             }
         }
         LazyColumn {
-            items(items = students) { student ->
+            itemsIndexed(items = students) { index, student ->
                 StudentRow(
                     onStudentChecked = {
                         reportViewModel.onStudentChecked(student)
                     },
-                    reportStudentUiState = student
+                    reportStudentUiState = student,
+                    index = index
                 )
                 Divider()
             }
@@ -149,7 +150,8 @@ private fun ReportFrontLayer(
 @Composable
 private fun StudentRow(
     onStudentChecked: (Boolean) -> Unit,
-    reportStudentUiState: ReportStudentUiState
+    reportStudentUiState: ReportStudentUiState,
+    index: Int
 ) {
     Column(
         modifier = Modifier
@@ -168,7 +170,7 @@ private fun StudentRow(
             modifier = Modifier.padding(horizontal = 4.dp)
         ) {
             AnimatedVisibilityCheckbox(reportStudentUiState.checked)
-            Text(reportStudentUiState.student.surname)
+            Text("${index + 1}. ${reportStudentUiState.student.surname}")
             Spacer(modifier = Modifier.weight(1f))
             Button(
                 onClick = { onStudentChecked(!reportStudentUiState.checked) },

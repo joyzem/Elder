@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -48,10 +48,10 @@ fun ManageScreen(
             onAddButtonClicked = manageViewModel::insertStudent
         )
     }
+    val scope = rememberCoroutineScope()
     BackdropScaffold(
         scaffoldState = backdropScaffoldState,
         appBar = {
-            val scope = rememberCoroutineScope()
             ManageTopAppBar(
                 manageViewModel = manageViewModel,
                 onMenuClicked = {
@@ -59,7 +59,8 @@ fun ManageScreen(
                         backdropScaffoldState.reveal()
                     }
                 },
-                onAddPersonClicked = { showStudentAddDialog = true }
+                onAddPersonClicked = { showStudentAddDialog = true },
+                backdropScaffoldState = backdropScaffoldState
             )
         },
         backLayerContent = {
@@ -117,10 +118,11 @@ private fun ManageFrontLayer(
             }
         }
         LazyColumn {
-            items(students) { student ->
+            itemsIndexed(students) { index, student ->
                 StudentRow(
                     modifier = Modifier.padding(start = 16.dp),
                     student = student,
+                    index = index,
                     onDeleteButtonClick = manageViewModel::deleteStudent
                 )
             }
@@ -299,13 +301,14 @@ private fun makeToast(context: Context, message: String) {
 private fun StudentRow(
     modifier: Modifier = Modifier,
     student: Student,
+    index: Int,
     onDeleteButtonClick: (Student) -> Unit
 ) {
     Row(
         modifier = modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = student.surname)
+        Text(text = "${index + 1}. ${student.surname}")
         Spacer(modifier = Modifier.weight(1f))
         IconButton(
             onClick = { onDeleteButtonClick(student) },

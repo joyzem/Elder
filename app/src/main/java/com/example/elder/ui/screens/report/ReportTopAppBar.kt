@@ -2,13 +2,10 @@ package com.example.elder.ui.screens.report
 
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.elder.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,7 +30,8 @@ fun ReportTopAppBar(
                 state = reportViewModel.toggleableState,
                 onClick = reportViewModel::onToggleableStateClicked,
                 colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colors.primary
+                    checkedColor = MaterialTheme.colors.primary,
+                    uncheckedColor = MaterialTheme.colors.onSurface
                 )
             )
             IconButton(onClick = {
@@ -41,7 +39,8 @@ fun ReportTopAppBar(
             }) {
                 Icon(
                     imageVector = Icons.Default.Send,
-                    contentDescription = "Send"
+                    contentDescription = "Send",
+                    tint = MaterialTheme.colors.onSurface
                 )
             }
         },
