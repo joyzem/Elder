@@ -6,14 +6,6 @@ plugins {
 }
 
 android {
-    signingConfigs {
-        release {
-            storeFile file('C:\\Users\\79184\\AndroidStudioProjects\\ElderRes\\elderkey.jks')
-            storePassword 'qwerty'
-            keyAlias 'ElderSign'
-            keyPassword 'qwerty'
-        }
-    }
     compileSdk 32
 
     defaultConfig {
@@ -34,7 +26,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
     compileOptions {
